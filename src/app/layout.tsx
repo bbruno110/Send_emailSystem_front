@@ -1,8 +1,15 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+// layout.tsx
 
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next";
+import { Inter as FontSans } from "next/font/google"
+import "./globals.css";
+import { cn } from "@/lib/utils"
+import Menu from "@/components/Menu";
+
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +23,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+        <div className="flex flex-col min-h-screen">
+          <Menu />
+          <main className="flex-grow overflow-y-auto mt-20">
+            {children}
+          </main>
+        </div>
+      </body>
     </html>
   );
 }
