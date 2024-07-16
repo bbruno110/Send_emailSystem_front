@@ -1,5 +1,4 @@
-// pages/Home.tsx
-
+'use client'
 import React from 'react';
 import Cards from '@/components/Cards';
 

@@ -25,8 +25,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <div className="flex flex-col min-h-screen">
-          <Menu />
-          <main className="flex-grow overflow-y-auto mt-20">
+          <div className=" z-10">
+            <Menu />
+          </div>
+          <main className="flex-grow overflow-y-auto">
             {children}
           </main>
         </div>

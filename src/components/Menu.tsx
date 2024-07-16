@@ -1,72 +1,149 @@
 'use client'
-import Link from "next/link";
-import { FaBars, FaTimes } from "react-icons/fa";
-import React, { useState, useEffect } from "react";
+// components/Menu.tsx
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { FaHome, FaHistory, FaEnvelope, FaCaretDown } from "react-icons/fa";
+import { BsFillPeopleFill } from "react-icons/bs";
+
+const links = [
+  { id: 1, name: "Início", link: "/", icon: <FaHome /> },
+  {
+    id: 2,
+    name: "Cadastros",
+    link: "#",
+    icon: <BsFillPeopleFill />,
+    submenu: [
+      { id: 5, name: "Cadastro CNPJ", link: "/Cadastro" },
+      { id: 6, name: "Cadastro Perfil", link: "/Perfil" },
+    ],
+  },
+  { id: 3, name: "Histórico", link: "/Historico", icon: <FaHistory /> },
+  { id: 4, name: "Email", link: "/Email", icon: <FaEnvelope /> },
+];
 
 const Menu = () => {
-  const router = usePathname();
-  const [nav, setNav] = useState(false);
-  const [activeTab, setActiveTab] = useState("");
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState(pathname);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = [
-    { id: 1, name: "Início", link: "/" },
-    { id: 2, name: "Cadastro", link: "/Cadastro" },
-    { id: 3, name: "Histórico", link: "/historico" },
-    { id: 4, name: "Email", link: "/Email" },
-  ];
   useEffect(() => {
-    setActiveTab(router);
-  }, [router])
+    setActiveTab(pathname);
+  }, [pathname]);
 
-   return (
-    <div className="flex justify-between items-center w-full h-20 px-4 text-white bg-black fixed top-0 left-0">
-      <div>
-        <h1 className="text-5xl font-signature ml-2">
-          <a className="link-underline link-underline-black" href="#">
-            Logo
-          </a>
-        </h1>
-      </div>
-      <ul className="hidden md:flex">
-        {links.map(({ id, name, link }) => (
-          <li
-          key={id}
-          className={`nav-links px-4 cursor-pointer capitalize font-medium ${
-            activeTab === link ? "text-white" : "text-gray-500"
-          } hover:scale-105 hover:text-white duration-200 link-underline`}
-        >
-          <Link href={link} onClick={() => setActiveTab(link)}>
-            <span className={activeTab === link ? "text-white" : "text-gray-500"}>
-              {name}
-            </span>
-          </Link>
-        </li>
-        ))}
-      </ul>
-      <div
-        onClick={() => setNav(!nav)}
-        className="cursor-pointer pr-4 z-50 text-gray-500 md:hidden"
-      >
-        {nav ? <FaTimes size={30} /> : <FaBars size={30} />}
-      </div>
-      {nav && (
-        <ul className="flex flex-col justify-center items-center absolute top-20 left-0 w-full h-screen bg-gradient-to-b from-black to-gray-800 text-gray-500">
-          {links.map(({ id, name, link }) => (
-            <li
-              key={id}
-              className={`px-4 cursor-pointer capitalize py-6 text-4xl ${
-                activeTab === link ? "text-white" : "text-gray-500"
-              }`}
+  const handleMenuToggle = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  return (
+    <nav className="bg-gray-800 text-white">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div className="relative flex items-center justify-between h-16">
+          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+            <button
+              onClick={handleMenuToggle}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              aria-controls="mobile-menu"
+              aria-expanded="false"
             >
-              <Link onClick={() => setNav(!nav)} href={link}>
-                {name}
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className="block h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
+            <div className="flex-shrink-0">
+              <Link href="/" className="text-2xl font-bold">
+                Logo
               </Link>
-            </li>
+            </div>
+            <div className="hidden sm:block sm:ml-6">
+              <div className="flex space-x-4">
+                {links.map((link) => (
+                  <div key={link.id} className="relative group">
+                    <Link href={link.link}>
+                      <span
+                        className={`px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2 cursor-pointer ${
+                          activeTab === link.link ||
+                          (link.submenu &&
+                            link.submenu.some((subLink) => activeTab === subLink.link))
+                            ? "text-white text-lg font-bold"
+                            : "text-gray-300 hover:text-white"
+                        }`}
+                      >
+                        {link.icon}
+                        <span>{link.name}</span>
+                      </span>
+                    </Link>
+                    {link.submenu && (
+                      <div className="hidden absolute left-0 top-full w-48 bg-gray-800 rounded-md shadow-lg group-hover:block">
+                        {link.submenu.map((subLink) => (
+                          <Link key={subLink.id} href={subLink.link}>
+                            <span className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer">
+                              {subLink.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${menuOpen ? "block" : "hidden"} sm:hidden`} id="mobile-menu">
+        <div className="px-2 pt-2 pb-3 space-y-1">
+          {links.map((link) => (
+            <div key={link.id}>
+              <Link href={link.link}>
+                <span
+                  className={`block px-3 py-2 rounded-md text-base font-medium cursor-pointer ${
+                    activeTab === link.link ||
+                    (link.submenu && link.submenu.some((subLink) => activeTab === subLink.link))
+                      ? "text-white bg-gray-900"
+                      : "text-gray-300 hover:text-white hover:bg-gray-700"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {link.icon}
+                  {link.name}
+                </span>
+              </Link>
+              {link.submenu && (
+                <div className="pl-4">
+                  {link.submenu.map((subLink) => (
+                    <Link key={subLink.id} href={subLink.link}>
+                      <span
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {subLink.name}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
-        </ul>
-      )}
-    </div>
+        </div>
+      </div>
+    </nav>
   );
 };
 

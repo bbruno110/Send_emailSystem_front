@@ -10,4 +10,8 @@ export const data = [
     { id: 9, nome: 'Empresa I', cnpj: '99.999.999/0009-99', email: 'empresaI@example.com', telefone: '(99) 9999-9999', data_criacao: '2024-09-01', dt_vencimento: '2024-09-01' },
     { id: 10, nome: 'Empresa J', cnpj: '10.101.010/0010-10', email: 'empresaJ@example.com', telefone: '(10) 1010-1010', data_criacao: '2024-10-01', dt_vencimento: '2024-10-01' },
   ];
-  
+
+export const perfil = [
+  {id: 1, titulo: 'Saudação', conteudo: "Olá @nome@ seja bem-vindo, seu cadastro foi realizado com sucesso"},
+  {id: 2, titulo: 'Teste', conteudo: "Olá @cnpj@ este é um email de teste"}
+]
