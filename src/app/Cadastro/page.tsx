@@ -1,7 +1,10 @@
 'use client'
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useState } from 'react';
 import * as yup from 'yup';
+import Modal from '@/components/Modal';
+import CardEdit from '@/components/CardEdit';
 
 // Função para formatar CNPJ
 const formatCnpj = (value: string): string => {
@@ -16,7 +19,7 @@ const formatCnpj = (value: string): string => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 
   // Limita a quantidade de caracteres após a formatação
-  return formattedValue.slice(0, 18); // CNPJ tem 18 caracteres formatados
+  return formattedValue.slice(0, 18); // CNPJ tem 14 caracteres formatados
 };
 
 // Função para formatar números de telefone
@@ -52,15 +55,7 @@ const schema = yup.object().shape({
   tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone 1 inválido').max(15, 'Telefone 1 deve ter no máximo 15 caracteres').required('Telefone 1 é obrigatório'),
   tel2: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone 2 inválido').max(15, 'Telefone 2 deve ter no máximo 15 caracteres').required('Telefone 2 é obrigatório'),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
-  endereco: yup.object().shape({
-    rua: yup.string().required('Rua é obrigatória'),
-    numero: yup.string().matches(/^\d+$/, 'Número deve conter apenas números').required('Número é obrigatório'),
-    bairro: yup.string().required('Bairro é obrigatório'),
-    cidade: yup.string().required('Cidade é obrigatória'),
-    estado: yup.string().required('Estado é obrigatório'),
-    cep: yup.string().matches(/^\d{5}-\d{3}$/, 'CEP inválido').required('CEP é obrigatório'),
-    complemento: yup.string().notRequired(),
-  }),
+  repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
 });
 
 type FormValues = {
@@ -69,15 +64,7 @@ type FormValues = {
   tel1: string;
   tel2: string;
   email: string;
-  endereco: {
-    rua: string;
-    numero: string;
-    bairro: string;
-    cidade: string;
-    estado: string;
-    cep: string;
-    complemento?: string;
-  };
+  repeticao: number;
 };
 
 const RegisterForm = () => {
@@ -89,246 +76,157 @@ const RegisterForm = () => {
     console.log(data);
     // Envio dos dados para o servidor
   };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto bg-slate-50 p-6 rounded-lg shadow-md">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Bloco Principal */}
-        <div>
-          <div className="border-slate-200 border-2 rounded-lg p-4 space-y-4">
-            {/* Nome */}
-            <div>
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome</label>
-              <Controller
-                name="nome"
-                control={control}
-                render={({ field }) => (
-                  <input {...field}
-                    type="text"
-                    placeholder="Digite o nome"
-                    className={`mt-1 block w-full px-3 py-2 border ${errors.nome ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  />
-                )}
-              />
-              {errors.nome && <p className="mt-2 text-sm text-red-600">{errors.nome.message}</p>}
-            </div>
-            {/* CNPJ */}
-            <div>
-              <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700">CNPJ</label>
-              <Controller
-                name="cnpj"
-                control={control}
-                render={({ field }) => (
-                  <input {...field}
-                    type="text"
-                    onChange={(e) => {
-                      field.onChange(formatCnpj(e.target.value));
-                    }}
-                    placeholder="00.000.000/0000-00"
-                    className={`mt-1 block w-full px-3 py-2 border ${errors.cnpj ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  />
-                )}
-              />
-              {errors.cnpj && <p className="mt-2 text-sm text-red-600">{errors.cnpj.message}</p>}
-            </div>
-            {/* Telefone 1 e Telefone 2 (em linha) */}
-            <div className="flex flex-col md:flex-row md:space-x-4">
-              <div className="w-full md:w-1/2">
-                <label htmlFor="tel1" className="block text-sm font-medium text-gray-700">Telefone 1</label>
-                <Controller
-                  name="tel1"
-                  control={control}
-                  render={({ field }) => (
-                    <input {...field}
-                      type="text"
-                      onChange={(e) => {
-                        field.onChange(formatPhoneNumber(e.target.value));
-                      }}
-                      placeholder="(00) 00000-0000"
-                      className={`mt-1 block w-full px-3 py-2 border ${errors.tel1 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    />
-                  )}
-                />
-                {errors.tel1 && <p className="mt-2 text-sm text-red-600">{errors.tel1.message}</p>}
-              </div>
-              <div className="w-full md:w-1/2">
-                <label htmlFor="tel2" className="block text-sm font-medium text-gray-700">Telefone 2</label>
-                <Controller
-                  name="tel2"
-                  control={control}
-                  render={({ field }) => (
-                    <input {...field}
-                      type="text"
-                      onChange={(e) => {
-                        field.onChange(formatPhoneNumber(e.target.value));
-                      }}
-                      placeholder="(00) 00000-0000"
-                      className={`mt-1 block w-full px-3 py-2 border ${errors.tel2 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    />
-                  )}
-                />
-                {errors.tel2 && <p className="mt-2 text-sm text-red-600">{errors.tel2.message}</p>}
-              </div>
-            </div>
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <input {...field}
-                    type="email"
-                    placeholder="Digite o email"
-                    className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  />
-                )}
-              />
-              {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Bloco Endereço */}
-        <div className="md:col-span-2">
-          <div className="border-slate-200 border-2 rounded-lg p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Rua */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-blue-100 select-none">
+      {/* Botão Listar Empresas */}
+      <button onClick={handleOpenModal} type="button" className="mb-2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-300 ease-in-out">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block align-text-top mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1zm9-1a1 1 0 011 1h4a1 1 0 110 2h-4a1 1 0 01-1-1zM4 9a1 1 0 011-1h4a1 1 0 110 2H5a1 1 0 01-1-1zm9-1a1 1 0 011 1h4a1 1 0 110 2h-4a1 1 0 01-1-1zm-9 5a1 1 0 011-1h4a1 1 0 110 2H5a1 1 0 01-1-1zm9-1a1 1 0 011 1h4a1 1 0 110 2h-4a1 1 0 01-1-1z" clipRule="evenodd" />
+        </svg>
+        Listar Empresas
+      </button>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <CardEdit/>
+      </Modal>
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl w-full bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Página de Cadastro</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Bloco Principal */}
+          <div>
+            <div className="border-gray-200 border-2 rounded-lg p-4 space-y-4">
+              {/* Nome */}
               <div>
-                <label htmlFor="rua" className="block text-sm font-medium text-gray-700">Rua</label>
+                <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome</label>
                 <Controller
-                  name="endereco.rua"
+                  name="nome"
                   control={control}
                   render={({ field }) => (
                     <input {...field}
-                      id="rua"
                       type="text"
-                      placeholder="Digite a rua"
-                      className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.rua ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="Digite o nome"
+                      className={`mt-1 block w-full px-3 py-2 border ${errors.nome ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     />
                   )}
                 />
-                {errors.endereco?.rua && <p className="mt-2 text-sm text-red-600">{errors.endereco?.rua.message}</p>}
+                {errors.nome && <p className="mt-2 text-sm text-red-600">{errors.nome.message}</p>}
               </div>
-              {/* Número e Bairro (em linha) */}
+              {/* CNPJ */}
+              <div>
+                <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700">CNPJ</label>
+                <Controller
+                  name="cnpj"
+                  control={control}
+                  render={({ field }) => (
+                    <input {...field}
+                      type="text"
+                      onChange={(e) => {
+                        field.onChange(formatCnpj(e.target.value));
+                      }}
+                      placeholder="00.000.000/0000-00"
+                      className={`mt-1 block w-full px-3 py-2 border ${errors.cnpj ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    />
+                  )}
+                />
+                {errors.cnpj && <p className="mt-2 text-sm text-red-600">{errors.cnpj.message}</p>}
+              </div>
+              {/* Telefone 1 e Telefone 2 (em linha) */}
               <div className="flex flex-col md:flex-row md:space-x-4">
                 <div className="w-full md:w-1/2">
-                  <label htmlFor="numero" className="block text-sm font-medium text-gray-700">Número</label>
+                  <label htmlFor="tel1" className="block text-sm font-medium text-gray-700">Telefone 1</label>
                   <Controller
-                    name="endereco.numero"
+                    name="tel1"
                     control={control}
                     render={({ field }) => (
                       <input {...field}
-                        id="numero"
-                        type="text"
-                        inputMode="numeric" // Restringe entrada apenas a números
-                        placeholder="Digite o número"
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.numero ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                      />
-                    )}
-                  />
-                  {errors.endereco?.numero && <p className="mt-2 text-sm text-red-600">{errors.endereco?.numero.message}</p>}
-                </div>
-                <div className="w-full md:w-1/2">
-                  <label htmlFor="bairro" className="block text-sm font-medium text-gray-700">Bairro</label>
-                  <Controller
-                    name="endereco.bairro"
-                    control={control}
-                    render={({ field }) => (
-                      <input {...field}
-                        id="bairro"
-                        type="text"
-                        placeholder="Digite o bairro"
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.bairro ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                      />
-                    )}
-                  />
-                  {errors.endereco?.bairro && <p className="mt-2 text-sm text-red-600">{errors.endereco?.bairro.message}</p>}
-                </div>
-              </div>
-              {/* Estado e CEP (em linha) */}
-              <div className="flex flex-col md:flex-row md:space-x-4">
-                <div className="w-full md:w-1/2">
-                  <label htmlFor="estado" className="block text-sm font-medium text-gray-700">Estado</label>
-                  <Controller
-                    name="endereco.estado"
-                    control={control}
-                    render={({ field }) => (
-                      <input {...field}
-                        id="estado"
-                        type="text"
-                        placeholder="Digite o estado"
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.estado ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                      />
-                    )}
-                  />
-                  {errors.endereco?.estado && <p className="mt-2 text-sm text-red-600">{errors.endereco?.estado.message}</p>}
-                </div>
-                <div className="w-full md:w-1/2">
-                  <label htmlFor="cep" className="block text-sm font-medium text-gray-700">CEP</label>
-                  <Controller
-                    name="endereco.cep"
-                    control={control}
-                    render={({ field }) => (
-                      <input {...field}
-                        id="cep"
                         type="text"
                         onChange={(e) => {
-                          field.onChange(formatCep(e.target.value));
+                          field.onChange(formatPhoneNumber(e.target.value));
                         }}
-                        placeholder="00000-000"
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.cep ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                        placeholder="(00) 00000-0000"
+                        className={`mt-1 block w-full px-3 py-2 border ${errors.tel1 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       />
                     )}
                   />
-                  {errors.endereco?.cep && <p className="mt-2 text-sm text-red-600">{errors.endereco?.cep.message}</p>}
+                  {errors.tel1 && <p className="mt-2 text-sm text-red-600">{errors.tel1.message}</p>}
+                </div>
+                <div className="w-full md:w-1/2">
+                  <label htmlFor="tel2" className="block text-sm font-medium text-gray-700">Telefone 2</label>
+                  <Controller
+                    name="tel2"
+                    control={control}
+                    render={({ field }) => (
+                      <input {...field}
+                        type="text"
+                        onChange={(e) => {
+                          field.onChange(formatPhoneNumber(e.target.value));
+                        }}
+                        placeholder="(00) 00000-0000"
+                        className={`mt-1 block w-full px-3 py-2 border ${errors.tel2 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      />
+                    )}
+                  />
+                  {errors.tel2 && <p className="mt-2 text-sm text-red-600">{errors.tel2.message}</p>}
                 </div>
               </div>
-              {/* Cidade */}
+            </div>
+          </div>
+
+          {/* Bloco Secundário */}
+          <div>
+            <div className="border-gray-200 border-2 rounded-lg p-4 space-y-4">
+              {/* Email */}
               <div>
-                <label htmlFor="cidade" className="block text-sm font-medium text-gray-700">Cidade</label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                 <Controller
-                  name="endereco.cidade"
+                  name="email"
                   control={control}
                   render={({ field }) => (
                     <input {...field}
-                      id="cidade"
                       type="text"
-                      placeholder="Digite a cidade"
-                      className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.cidade ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="email@example.com"
+                      className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     />
                   )}
                 />
-                {errors.endereco?.cidade && <p className="mt-2 text-sm text-red-600">{errors.endereco?.cidade.message}</p>}
+                {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
               </div>
-              {/* Complemento */}
+              {/* Repetição */}
               <div>
-                <label htmlFor="complemento" className="block text-sm font-medium text-gray-700">Complemento</label>
+                <label htmlFor="repeticao" className="block text-sm font-medium text-gray-700">Repetição</label>
                 <Controller
-                  name="endereco.complemento"
+                  name="repeticao"
                   control={control}
                   render={({ field }) => (
-                    <textarea {...field}
-                      id="complemento"
-                      placeholder="Digite o complemento"
-                      className={`mt-1 block w-full px-3 py-2 border ${errors.endereco?.complemento ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    <input {...field}
+                      type="number"
+                      placeholder="Digite a repetição de meses que deverá ser notificado"
+                      className={`mt-1 block w-full px-3 py-2 border ${errors.repeticao ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     />
                   )}
                 />
-                {errors.endereco?.complemento && <p className="mt-2 text-sm text-red-600">{errors.endereco?.complemento.message}</p>}
+                {errors.repeticao && <p className="mt-2 text-sm text-red-600">{errors.repeticao.message}</p>}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Botão de Submit */}
-      <div className="flex justify-end mt-6">
-        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-          Cadastrar
-        </button>
-      </div>
-    </form>
+        {/* Botão de Envio */}
+        <div className="mt-6 flex justify-end">
+          <button type="submit" className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
