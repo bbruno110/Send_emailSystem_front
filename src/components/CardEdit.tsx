@@ -2,116 +2,114 @@ import React, { useState } from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
 import { data } from '@/helpers/data';
 
-const CardEdit = () => {
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [formData, setFormData] = useState(data);
+const CardEdit: React.FC = () => {
+  const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    nome: '',
+    cnpj: '',
+    email: '',
+    telefone: '',
+    situacao: 'A',
+    repeticao: 0,
+  });
 
-  const handleSelectCard = (id: number) => {
-    setSelectedId(id);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? (checked ? 'A' : 'I') : value;
-    setFormData((prevData) =>
-      prevData.map((item) => (item.id === id ? { ...item, [name]: newValue } : item))
-    );
-  };
-
-  const handleCancel = () => {
-    setSelectedId(null);
+  const handleEdit = (card: any) => {
+    setSelectedCardId(card.id);
+    setFormData({
+      nome: card.nome,
+      cnpj: card.cnpj,
+      email: card.email,
+      telefone: card.telefone,
+      situacao: card.situacao,
+      repeticao: card.repeticao,
+    });
   };
 
   const handleSave = () => {
-    console.log('Saved data:', formData);
-    setSelectedId(null);
+    // Logic to save the edited card data
+    setSelectedCardId(null);
+  };
+
+  const handleCancel = () => {
+    setSelectedCardId(null);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 space-y-4">
-      {formData.map((item) => (
-        <div
-          key={item.id}
-          className="w-full max-w-md p-4 border rounded-lg shadow-md bg-white hover:bg-gray-100 transition duration-300 ease-in-out"
-        >
-          {selectedId === item.id ? (
+    <div className="space-y-4">
+      {data.map((card) => (
+        <div key={card.id} className="p-4 border rounded-lg shadow-sm flex flex-col space-y-2">
+          {selectedCardId === card.id ? (
             <>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
                 <input
                   type="text"
-                  name="nome"
-                  value={item.nome}
-                  onChange={(e) => handleChange(e, item.id)}
-                  className="border rounded p-2 w-full"
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  className="flex-grow border rounded-md p-2"
                 />
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
                 <input
                   type="text"
-                  name="cnpj"
-                  value={item.cnpj}
-                  onChange={(e) => handleChange(e, item.id)}
-                  className="border rounded p-2 w-full"
+                  value={formData.cnpj}
+                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                  className="flex-grow border rounded-md p-2"
                 />
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
                 <input
                   type="text"
-                  name="email"
-                  value={item.email}
-                  onChange={(e) => handleChange(e, item.id)}
-                  className="border rounded p-2 w-full"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="flex-grow border rounded-md p-2"
                 />
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
                 <input
                   type="text"
-                  name="telefone"
-                  value={item.telefone}
-                  onChange={(e) => handleChange(e, item.id)}
-                  className="border rounded p-2 w-full"
+                  value={formData.telefone}
+                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                  className="flex-grow border rounded-md p-2"
                 />
               </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center">
                   <input
                     type="checkbox"
-                    name="situacao"
-                    checked={item.situacao === 'A'}
-                    onChange={(e) => handleChange(e, item.id)}
+                    checked={formData.situacao === 'A'}
+                    onChange={(e) => setFormData({ ...formData, situacao: e.target.checked ? 'A' : 'I' })}
                     className="form-checkbox"
                   />
-                  <span>Ativo</span>
+                  <span className="ml-2">Ativo</span>
                 </label>
               </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
-                  <span>Repetição:</span>
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center">
+                  <span className="mr-2">Repetição:</span>
                   <input
                     type="number"
-                    name="repeticao"
-                    value={item.repeticao}
-                    onChange={(e) => handleChange(e, item.id)}
-                    className="border rounded p-2 w-16"
+                    value={formData.repeticao}
+                    onChange={(e) => setFormData({ ...formData, repeticao: Number(e.target.value) })}
+                    className="w-20 border rounded-md p-2"
                   />
                 </label>
               </div>
-              <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  Cancelar
-                </button>
+              <div className="flex space-x-4">
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
                   Salvar
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  Cancelar
                 </button>
               </div>
             </>
@@ -119,23 +117,23 @@ const CardEdit = () => {
             <>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <span>{item.nome}</span>
+                <span>{card.nome}</span>
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <span>{item.cnpj}</span>
+                <span>{card.cnpj}</span>
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
-                <span>{item.email}</span>
+                <span>{card.email}</span>
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
-                <span>{item.telefone}</span>
+                <span>{card.telefone}</span>
               </div>
               <button
-                onClick={() => handleSelectCard(item.id)}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full"
+                onClick={() => handleEdit(card)}
+                className="self-end px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
                 Editar
               </button>
@@ -143,6 +141,7 @@ const CardEdit = () => {
           )}
         </div>
       ))}
+      
     </div>
   );
 };

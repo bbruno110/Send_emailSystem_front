@@ -94,9 +94,11 @@ const RegisterForm = () => {
         </svg>
         Listar Empresas
       </button>
+
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
         <CardEdit/>
       </Modal>
+
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl w-full bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Página de Cadastro</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

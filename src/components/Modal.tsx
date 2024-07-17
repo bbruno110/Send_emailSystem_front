@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 select-none">
       <div className="bg-white rounded-lg overflow-hidden w-full max-w-xl h-full max-h-[80%] md:max-w-2xl md:max-h-[70%]">
-        <div className="relative h-full">
+        <div className="relative h-full ">
           <div className="sticky top-0 bg-white z-10 flex justify-between items-center border-b p-4 mb-2">
             <h2 className="text-xl font-semibold">Editar Empresa</h2>
             <button
@@ -36,7 +36,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
               &times;
             </button>
           </div>
-          <div className="overflow-auto p-4 h-full">
+          <div className="overflow-auto invisible-scrollbar p-4 pb-20 h-full">
             {children}
           </div>
         </div>
