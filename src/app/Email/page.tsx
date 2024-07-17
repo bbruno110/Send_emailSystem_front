@@ -1,22 +1,36 @@
 'use client'
-import React, { useState } from 'react';
+// src/app/Email/page.tsx
+
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { data } from '@/helpers/data';
+import { data } from '@/helpers/data'; // Import data
 
 const Email: React.FC = () => {
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
-    const params = useSearchParams();
-    const propData = params.get("emails");
-    const selectedEmails = propData ? propData.split(',') : [];
-    const initialSelectedValues = selectedEmails.map(email => ({ value: email, label: email }));
-    const options = data.map(item => ({
+    const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const storedEmails = sessionStorage.getItem('selectedEmails');
+            if (storedEmails) {
+                const emails = JSON.parse(storedEmails);
+                setSelectedEmails(emails);
+            }
+        }
+    }, []);
+
+    const initialSelectedValues = selectedEmails.map((email) => ({ value: email, label: email }));
+    const options = data.map((item) => ({
         value: item.email,
         label: item.email,
     }));
 
     const [selectedValues, setSelectedValues] = useState(initialSelectedValues);
+
+    useEffect(() => {
+        setSelectedValues(initialSelectedValues);
+    }, [selectedEmails]);
 
     const handleSelectChange = (newValue: any) => {
         setSelectedValues(newValue);
@@ -34,6 +48,7 @@ const Email: React.FC = () => {
         setSelectedValues([]); // Clear recipients
         setSubject(''); // Clear subject
         setBody(''); // Clear email body
+        sessionStorage.clear();
     };
 
     const handleSendClick = () => {
@@ -45,8 +60,8 @@ const Email: React.FC = () => {
             <h1 className="text-2xl font-bold mb-4">Enviar Email</h1>
             <label className="block mb-2">Destinatários:</label>
             <Select
-                value={selectedValues}
                 options={options}
+                value={selectedValues}
                 onChange={handleSelectChange}
                 isMulti
             />
@@ -66,7 +81,7 @@ const Email: React.FC = () => {
             />
             <button
                 onClick={handleClearClick}
-                className="mt-2  px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                className="mt-2 px-4 py-2 bg-gray-300 text-gray-700 rounded"
             >
                 Limpar
             </button>
