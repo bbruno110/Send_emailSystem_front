@@ -36,24 +36,10 @@ const formatPhoneNumber = (value: string): string => {
   return formattedValue.slice(0, 15); // Telefone tem 15 caracteres formatados
 };
 
-// Função para formatar CEP
-const formatCep = (value: string): string => {
-  // Remove caracteres não numéricos
-  const numericValue = value.replace(/\D/g, '');
-
-  // Formatação: 00000-000
-  const formattedValue = numericValue
-    .replace(/^(\d{5})(\d)/, '$1-$2');
-
-  // Limita a quantidade de caracteres após a formatação
-  return formattedValue.slice(0, 9); // CEP tem 9 caracteres formatados
-};
-
 const schema = yup.object().shape({
   nome: yup.string().required('Nome é obrigatório'),
   cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido').required('CNPJ é obrigatório'),
-  tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone 1 inválido').max(15, 'Telefone 1 deve ter no máximo 15 caracteres').required('Telefone 1 é obrigatório'),
-  tel2: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone 2 inválido').max(15, 'Telefone 2 deve ter no máximo 15 caracteres').required('Telefone 2 é obrigatório'),
+  tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres').required('Telefone é obrigatório'),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
   repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
 });
@@ -143,7 +129,7 @@ const RegisterForm = () => {
               {/* Telefone 1 e Telefone 2 (em linha) */}
               <div className="flex flex-col md:flex-row md:space-x-4">
                 <div className="w-full md:w-1/2">
-                  <label htmlFor="tel1" className="block text-sm font-medium text-gray-700">Telefone 1</label>
+                  <label htmlFor="tel1" className="block text-sm font-medium text-gray-700">Telefone</label>
                   <Controller
                     name="tel1"
                     control={control}
@@ -160,24 +146,7 @@ const RegisterForm = () => {
                   />
                   {errors.tel1 && <p className="mt-2 text-sm text-red-600">{errors.tel1.message}</p>}
                 </div>
-                <div className="w-full md:w-1/2">
-                  <label htmlFor="tel2" className="block text-sm font-medium text-gray-700">Telefone 2</label>
-                  <Controller
-                    name="tel2"
-                    control={control}
-                    render={({ field }) => (
-                      <input {...field}
-                        type="text"
-                        onChange={(e) => {
-                          field.onChange(formatPhoneNumber(e.target.value));
-                        }}
-                        placeholder="(00) 00000-0000"
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.tel2 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                      />
-                    )}
-                  />
-                  {errors.tel2 && <p className="mt-2 text-sm text-red-600">{errors.tel2.message}</p>}
-                </div>
+                
               </div>
             </div>
           </div>

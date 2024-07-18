@@ -1,6 +1,4 @@
 'use client'
-// src/app/Cards.tsx
-
 import React, { useState } from 'react';
 import Card from './Card';
 import { data } from '@/helpers/data'; // Import data
@@ -29,6 +27,11 @@ const Cards: React.FC = () => {
     const clearSelection = () => {
         setSelectedCards([]);
         setContextMenuVisible(false);
+    };
+
+    const selectAllCards = () => {
+        setSelectedCards(sortedData.map(card => card.id)); // Select all cards
+        setContextMenuVisible(false); // Hide context menu after selecting all
     };
 
     const getSelectedEmails = (): string[] => {
@@ -68,20 +71,24 @@ const Cards: React.FC = () => {
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 select-none">
-            {sortedData.map(({ id, nome, cnpj, email, telefone, data_criacao, dt_vencimento }) => (
-                <Card
+            {sortedData.map(({ id, nome, cnpj, email, telefone1, telefone2, dt_vencimento }) => (
+                <div
                     key={id}
-                    id={id}
-                    nome={nome}
-                    cnpj={cnpj}
-                    email={email}
-                    telefone={telefone}
-                    data_criacao={data_criacao}
-                    dt_vencimento={dt_vencimento}
-                    selected={selectedCards.includes(id)}
-                    onClick={() => handleCardClick(id)}
                     onContextMenu={(e) => handleContextMenu(e, id)}
-                />
+                >
+                    <Card
+                        id={id}
+                        nome={nome}
+                        cnpj={cnpj}
+                        email={email}
+                        telefone1={telefone1}
+                        telefone2={telefone2}
+                        dt_vencimento={dt_vencimento}
+                        selected={selectedCards.includes(id)}
+                        onClick={() => handleCardClick(id)}
+                        onContextMenu={(e) => handleContextMenu(e, id)}
+                    />
+                </div>
             ))}
 
             {selectedCards.length > 0 && contextMenuVisible && (
@@ -89,6 +96,9 @@ const Cards: React.FC = () => {
                     className="fixed z-50 bg-white border border-gray-300 shadow-lg p-2"
                     style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
                 >
+                    <button className="block w-full text-left py-2 px-4 hover:bg-gray-200" onClick={selectAllCards}>
+                        Selecionar Todos
+                    </button>
                     <button className="block w-full text-left py-2 px-4 hover:bg-gray-200" onClick={clearSelection}>
                         Limpar seleção
                     </button>

@@ -1,16 +1,19 @@
 
 import React from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
+import { HiDevicePhoneMobile } from "react-icons/hi2";
 import { FiCalendar, FiAlertCircle } from 'react-icons/fi';
 import { usePathname } from 'next/navigation'; // Importando o hook usePathname
+import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
 
 interface CardProps {
   id: number;
   nome: string;
   cnpj: string;
   email: string;
-  telefone: string;
-  data_criacao: string;
+  telefone1: string;
+  telefone2: string;
+  data_criacao?: string;
   dt_vencimento: string;
   selected: boolean;
   onClick: () => void;
@@ -22,7 +25,8 @@ const Card: React.FC<CardProps> = ({
   nome,
   cnpj,
   email,
-  telefone,
+  telefone1,
+  telefone2,
   data_criacao,
   dt_vencimento,
   selected,
@@ -55,7 +59,7 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">CNPJ: {cnpj}</p>
+        <p className="text-sm text-gray-600">CNPJ: {formatCnpj(cnpj)}</p>
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineMail className="text-gray-400 mr-2" />
@@ -63,11 +67,11 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex items-center mb-2">
         <HiOutlinePhone className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Telefone: {telefone}</p>
+        <p className="text-sm text-gray-600">Telefone 1: {formatPhoneNumber(telefone1)}</p>
       </div>
       <div className="flex items-center mb-2">
-        <FiCalendar className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Data de Criação: {formatDate(data_criacao)}</p>
+        <HiDevicePhoneMobile className="text-gray-400 mr-2" />
+        <p className="text-sm text-gray-600">Telefone 2: { formatPhoneNumber(telefone2)}</p>
       </div>
       <div className={`flex items-center ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
         <FiCalendar className="text-gray-400 mr-2" />

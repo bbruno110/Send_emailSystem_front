@@ -3,12 +3,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
-import { data } from '@/helpers/data'; // Import data
+import { data, perfil } from '@/helpers/data'; // Importar dados
 
 const Email: React.FC = () => {
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+    const [selectedProfile, setSelectedProfile] = useState<{ value: number; label: string; conteudo: string } | null>(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -26,14 +27,25 @@ const Email: React.FC = () => {
         label: item.email,
     }));
 
-    const [selectedValues, setSelectedValues] = useState(initialSelectedValues);
-
-    useEffect(() => {
-        setSelectedValues(initialSelectedValues);
-    }, [selectedEmails]);
+    const perfilOptions = perfil.map((item) => ({
+        value: item.id,
+        label: item.titulo,
+        conteudo: item.conteudo,
+    }));
 
     const handleSelectChange = (newValue: any) => {
-        setSelectedValues(newValue);
+        setSelectedEmails(newValue.map((option: any) => option.value));
+    };
+
+    const handleProfileChange = (selectedOption: any) => {
+        setSelectedProfile(selectedOption);
+        if (selectedOption) {
+            setBody(selectedOption.conteudo);
+            setSubject(selectedOption.label);
+        } else {
+            setBody('');
+            setSubject('');
+        }
     };
 
     const handleSubjectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,33 +57,57 @@ const Email: React.FC = () => {
     };
 
     const handleClearClick = () => {
-        setSelectedValues([]); // Clear recipients
-        setSubject(''); // Clear subject
-        setBody(''); // Clear email body
+        setSelectedEmails([]); // Limpar destinatários
+        setSubject(''); // Limpar assunto
+        setBody(''); // Limpar corpo do email
+        setSelectedProfile(null); // Limpar perfil selecionado
         sessionStorage.clear();
     };
 
     const handleSendClick = () => {
-        // Implement your send email logic here
+        if (selectedEmails.length === 0 || !subject.trim() || !body.trim()) {
+            alert('Por favor, preencha todos os campos antes de enviar o email.');
+            return;
+        }
+
+        console.log('Enviar:', { destinatarios: selectedEmails, assunto: subject, corpo: body });
     };
 
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Enviar Email</h1>
-            <label className="block mb-2">Destinatários:</label>
-            <Select
-                options={options}
-                value={selectedValues}
-                onChange={handleSelectChange}
-                isMulti
-            />
-            <label className="block mt-4 mb-2">Assunto:</label>
-            <input
-                type="text"
-                value={subject}
-                onChange={handleSubjectChange}
-                className="w-full p-2 border rounded"
-            />
+
+            <div className="mb-4">
+                <label className="block mb-2">Destinatários:</label>
+                <Select
+                    options={options}
+                    value={initialSelectedValues}
+                    onChange={handleSelectChange}
+                    isMulti
+                />
+            </div>
+
+            <div className="flex mb-4">
+                <div className="w-1/2">
+                    <label className="block mb-2">Assunto:</label>
+                    <input
+                        type="text"
+                        value={subject}
+                        onChange={handleSubjectChange}
+                        className="w-full p-2 border rounded"
+                    />
+                </div>
+                <div className="w-1/2 ml-4">
+                    <label className="block mb-2">Perfil de Email:</label>
+                    <Select
+                        options={perfilOptions}
+                        value={selectedProfile}
+                        onChange={handleProfileChange}
+                        isClearable
+                    />
+                </div>
+            </div>
+
             <label className="block mt-4 mb-2">Corpo do Email:</label>
             <textarea
                 value={body}
@@ -80,18 +116,21 @@ const Email: React.FC = () => {
                 className="w-full p-2 border rounded"
                 placeholder="Use macros: @nome@, @cnpj@, @email@, @cadastro@, @tel1@, @tel2@"
             />
-            <button
-                onClick={handleClearClick}
-                className="mt-2 px-4 py-2 bg-gray-300 text-gray-700 rounded"
-            >
-                Limpar
-            </button>
-            <button
-                onClick={handleSendClick}
-                className="mt-4 ml-2 px-4 py-2 bg-blue-500 text-white rounded"
-            >
-                Enviar
-            </button>
+
+            <div className="mt-4 flex space-x-2">
+                <button
+                    onClick={handleClearClick}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                >
+                    Limpar
+                </button>
+                <button
+                    onClick={handleSendClick}
+                    className="ml-auto px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                    Enviar
+                </button>
+            </div>
         </div>
     );
 };

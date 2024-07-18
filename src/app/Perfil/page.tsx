@@ -1,13 +1,12 @@
 'use client'
-
 import React, { useState } from 'react';
 import Select from 'react-select';
-import { perfil } from '@/helpers/data';  // Adjust the import path as needed
+import { perfil } from '@/helpers/data';  // Ajuste o caminho de importação conforme necessário
 
 const Perfil: React.FC = () => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [selectedProfile, setSelectedProfile] = useState(null);
+    const [selectedProfile, setSelectedProfile] = useState<any>(null); // Definir o tipo do estado
     
     const emailProfiles = perfil.map(item => ({
         value: item.id,
@@ -35,11 +34,29 @@ const Perfil: React.FC = () => {
     };
 
     const handleSaveClick = () => {
-        // Implement your save logic here
+        if (!title.trim()) {
+            alert('O título não pode estar vazio.');
+            return;
+        }
+        if (!body.trim()) {
+            alert('O corpo do email não pode estar vazio.');
+            return;
+        }
+        
+        console.log('Dados a serem enviados:', { title, body});
     };
 
     const handleEditClick = () => {
-        // Implement your edit logic here
+        if (!title.trim()) {
+            alert('O título não pode estar vazio.');
+            return;
+        }
+        if (!body.trim()) {
+            alert('O corpo do email não pode estar vazio.');
+            return;
+        }
+
+        console.log('Edição:', { title, body, perfil: selectedProfile.value });
     };
 
     const handleCancelClick = () => {

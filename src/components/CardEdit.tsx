@@ -1,16 +1,70 @@
 import React, { useState } from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
 import { data } from '@/helpers/data';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useForm, Controller } from 'react-hook-form';
+
+// Função para formatar CNPJ
+const formatCnpj = (value: string): string => {
+  // Remove caracteres não numéricos
+  const numericValue = value.replace(/\D/g, '');
+
+  // Formatação: XX.XXX.XXX/XXXX-XX
+  const formattedValue = numericValue
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+
+  // Limita a quantidade de caracteres após a formatação
+  return formattedValue.slice(0, 18); // CNPJ tem 14 caracteres formatados
+};
+
+// Função para formatar números de telefone
+const formatPhoneNumber = (value: string): string => {
+  // Remove caracteres não numéricos
+  const numericValue = value.replace(/\D/g, '');
+
+  // Formatação: (XX) XXXXX-XXXX
+  const formattedValue = numericValue
+    .replace(/^(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+
+  // Limita a quantidade de caracteres após a formatação
+  return formattedValue.slice(0, 15); // Telefone tem 15 caracteres formatados
+};
+const schema = yup.object().shape({
+  nome: yup.string(),
+  cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido'),
+  tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
+  email: yup.string().email('Email inválido'),
+  repeticao: yup.number().integer('Repetição deve ser um número inteiro'),
+});
+
+type FormValues = {
+  nome: string;
+  cnpj: string;
+  tel1: string;
+  tel2: string;
+  email: string;
+  repeticao: number;
+};
+
 
 const CardEdit: React.FC = () => {
+  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+    resolver: yupResolver(schema) as any, // Ajuste temporário para contornar erro de tipo
+  });
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: '',
     cnpj: '',
     email: '',
-    telefone: '',
+    telefone1: '',
+    telefone2: '',
     situacao: 'A',
-    repeticao: 0,
+    repeticao: 1,
   });
 
   const handleEdit = (card: any) => {
@@ -19,13 +73,15 @@ const CardEdit: React.FC = () => {
       nome: card.nome,
       cnpj: card.cnpj,
       email: card.email,
-      telefone: card.telefone,
+      telefone1: card.telefone1,
+      telefone2: card.telefone2,
       situacao: card.situacao,
       repeticao: card.repeticao,
     });
   };
 
   const handleSave = () => {
+    console.log("Dados a serem salvos:", formData);
     // Logic to save the edited card data
     setSelectedCardId(null);
   };
@@ -51,12 +107,17 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <input
+                <Controller
+                  name="cnpj"
+                  control={control}
+                  render={({ field }) => (
+                <input {...field}
                   type="text"
-                  value={formData.cnpj}
-                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                  className="flex-grow border rounded-md p-2"
-                />
+                  value={formatCnpj(formData.cnpj)}
+                  onChange={(e) => setFormData({ ...formData, cnpj: formatCnpj(e.target.value) })}
+                  className="flex-grow border rounded-md p-2"/>
+                )}
+              />
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
@@ -69,11 +130,32 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
-                <input
-                  type="text"
-                  value={formData.telefone}
-                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                  className="flex-grow border rounded-md p-2"
+                <Controller
+                  name="tel1"
+                  control={control}
+                  render={({ field }) => (
+                  <input {...field}
+                    type="text"
+                    value={formatPhoneNumber(formData.telefone1)}
+                    onChange={(e) => setFormData({ ...formData, telefone1: formatPhoneNumber(e.target.value) })}
+                    className="flex-grow border rounded-md p-2"
+                  />
+                )}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlinePhone className="text-gray-500" />
+                <Controller
+                  name="tel2"
+                  control={control}
+                  render={({ field }) => (
+                  <input {...field}
+                    type="text"
+                    value={formatPhoneNumber(formData.telefone2)}
+                    onChange={(e) => setFormData({ ...formData, telefone2: formatPhoneNumber(e.target.value) })}
+                    className="flex-grow border rounded-md p-2"
+                  />
+                )}
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -121,7 +203,7 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <span>{card.cnpj}</span>
+                <span>{formatCnpj(card.cnpj)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
@@ -129,7 +211,11 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
-                <span>{card.telefone}</span>
+                <span>{formatPhoneNumber(card.telefone1)}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlinePhone className="text-gray-500" />
+                <span>{formatPhoneNumber(card.telefone2)}</span>
               </div>
               <button
                 onClick={() => handleEdit(card)}
