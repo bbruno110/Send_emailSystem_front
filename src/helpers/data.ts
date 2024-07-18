@@ -12,6 +12,37 @@ export const data = [
   ];
 
 export const perfil = [
-  {id: 1, titulo: 'Saudação', conteudo: "Olá @nome@ seja bem-vindo, seu cadastro foi realizado com sucesso"},
-  {id: 2, titulo: 'Teste', conteudo: "Olá @cnpj@ este é um email de teste"}
+  {
+    id: 1,
+    titulo: 'Boas-vindas em HTML',
+    conteudo: `
+      <p>Olá <strong>@nome@</strong>,</p>
+      <p>Seja bem-vindo(a) à nossa plataforma.</p>
+      <p>Seu cadastro foi realizado com sucesso.</p>
+    `
+  },
+  {
+    id: 2,
+    titulo: 'Lembrete de Cadastro',
+    conteudo: `
+      Olá @nome@,
+      Lembre-se de completar seu cadastro com os dados solicitados.
+    `
+  },
+  {
+    id: 3,
+    titulo: 'Promoção Especial',
+    conteudo: `
+      Olá @nome@,
+      Não perca nossa promoção especial esta semana!
+    `
+  },
+  {
+    id: 4,
+    titulo: 'Email de Teste',
+    conteudo: `
+      Olá @cnpj@,
+      Este é um email de teste para verificar a formatação.
+    `
+  },
 ]

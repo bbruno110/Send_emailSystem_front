@@ -1,63 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
-import { data } from '@/helpers/data';
+import axiosInstance from '@/instance/axiosInstance';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm, Controller } from 'react-hook-form';
 
 // Função para formatar CNPJ
 const formatCnpj = (value: string): string => {
-  // Remove caracteres não numéricos
   const numericValue = value.replace(/\D/g, '');
-
-  // Formatação: XX.XXX.XXX/XXXX-XX
   const formattedValue = numericValue
     .replace(/^(\d{2})(\d)/, '$1.$2')
     .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
     .replace(/\.(\d{3})(\d)/, '.$1/$2')
     .replace(/(\d{4})(\d)/, '$1-$2');
-
-  // Limita a quantidade de caracteres após a formatação
-  return formattedValue.slice(0, 18); // CNPJ tem 14 caracteres formatados
+  return formattedValue.slice(0, 18);
 };
 
 // Função para formatar números de telefone
 const formatPhoneNumber = (value: string): string => {
-  // Remove caracteres não numéricos
   const numericValue = value.replace(/\D/g, '');
-
-  // Formatação: (XX) XXXXX-XXXX
   const formattedValue = numericValue
     .replace(/^(\d{2})(\d)/, '($1) $2')
     .replace(/(\d{5})(\d)/, '$1-$2');
-
-  // Limita a quantidade de caracteres após a formatação
-  return formattedValue.slice(0, 15); // Telefone tem 15 caracteres formatados
+  return formattedValue.slice(0, 15);
 };
+
 const schema = yup.object().shape({
-  nome: yup.string(),
-  cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido'),
+  nome: yup.string().required('Nome é obrigatório'),
+  cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido').required('CNPJ é obrigatório'),
   tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
-  email: yup.string().email('Email inválido'),
-  repeticao: yup.number().integer('Repetição deve ser um número inteiro'),
+  email: yup.string().email('Email inválido').required('Email é obrigatório'),
+  repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
 });
 
-type FormValues = {
+type Card = {
+  id: number;
   nome: string;
   cnpj: string;
-  tel1: string;
-  tel2: string;
   email: string;
+  telefone1: string;
+  telefone2: string;
+  situacao: string;
   repeticao: number;
 };
 
-
 const CardEdit: React.FC = () => {
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    resolver: yupResolver(schema) as any, // Ajuste temporário para contornar erro de tipo
+  const { control, handleSubmit, setValue, formState: { errors } } = useForm<Card>({
+    resolver: yupResolver(schema) as any,
   });
+  const [cards, setCards] = useState<Card[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Card>({
+    id: 0,
     nome: '',
     cnpj: '',
     email: '',
@@ -66,24 +60,80 @@ const CardEdit: React.FC = () => {
     situacao: 'A',
     repeticao: 1,
   });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleEdit = (card: any) => {
+  useEffect(() => {
+    axiosInstance.get('/list')
+      .then(response => {
+        const formattedCards = response.data.map((card: any) => ({
+          id: card.id,
+          nome: card.ds_nome,
+          cnpj: formatCnpj(card.cd_cnpj),
+          email: card.ds_email,
+          telefone1: formatPhoneNumber(card.nr_telefone_1),
+          telefone2: formatPhoneNumber(card.nr_telefone_2),
+          situacao: card.ie_situacao,
+          repeticao: card.nr_repeticao,
+        }));
+        setCards(formattedCards);
+      })
+      .catch(error => {
+        console.error('Erro ao buscar dados:', error);
+      });
+  }, []);
+
+  const handleEdit = (card: Card) => {
     setSelectedCardId(card.id);
     setFormData({
-      nome: card.nome,
-      cnpj: card.cnpj,
-      email: card.email,
-      telefone1: card.telefone1,
-      telefone2: card.telefone2,
-      situacao: card.situacao,
-      repeticao: card.repeticao,
+      ...card,
+      cnpj: formatCnpj(card.cnpj),
+      telefone1: formatPhoneNumber(card.telefone1),
+      telefone2: formatPhoneNumber(card.telefone2),
     });
   };
 
-  const handleSave = () => {
-    console.log("Dados a serem salvos:", formData);
-    // Logic to save the edited card data
-    setSelectedCardId(null);
+  const handleSave = async () => {
+    setIsLoading(true); // Inicia o carregamento
+    try {
+      await axiosInstance.put(`/edit/${formData.id}`, {
+        ds_nome: formData.nome,
+        cd_cnpj: formData.cnpj,
+        nr_telefone_1: formData.telefone1,
+        nr_telefone_2: formData.telefone2,
+        ds_email: formData.email,
+        nr_repeticao: formData.repeticao,
+        ie_situacao: formData.situacao,
+      });
+
+      setCards(prevCards =>
+        prevCards.map(card =>
+          card.id === formData.id ? { ...formData } : card
+        )
+      );
+      setSelectedCardId(null);
+    } catch (error) {
+      console.error('Erro ao editar empresa:', error);
+      alert('Erro ao realizar a atualização do cadastro.');
+    } finally {
+      axiosInstance.get('/list')
+      .then(response => {
+        const formattedCards = response.data.map((card: any) => ({
+          id: card.id,
+          nome: card.ds_nome,
+          cnpj: formatCnpj(card.cd_cnpj),
+          email: card.ds_email,
+          telefone1: formatPhoneNumber(card.nr_telefone_1),
+          telefone2: formatPhoneNumber(card.nr_telefone_2),
+          situacao: card.ie_situacao,
+          repeticao: card.nr_repeticao,
+        }));
+        setCards(formattedCards);
+      })
+      .catch(error => {
+        console.error('Erro ao buscar dados:', error);
+      });
+      setIsLoading(false); // Finaliza o carregamento
+    }
   };
 
   const handleCancel = () => {
@@ -92,7 +142,7 @@ const CardEdit: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {data.map((card) => (
+      {cards.map((card) => (
         <div key={card.id} className="p-4 border rounded-lg shadow-sm flex flex-col space-y-2">
           {selectedCardId === card.id ? (
             <>
@@ -103,6 +153,7 @@ const CardEdit: React.FC = () => {
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -111,13 +162,15 @@ const CardEdit: React.FC = () => {
                   name="cnpj"
                   control={control}
                   render={({ field }) => (
-                <input {...field}
-                  type="text"
-                  value={formatCnpj(formData.cnpj)}
-                  onChange={(e) => setFormData({ ...formData, cnpj: formatCnpj(e.target.value) })}
-                  className="flex-grow border rounded-md p-2"/>
-                )}
-              />
+                    <input {...field}
+                      type="text"
+                      value={formData.cnpj}
+                      onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                      className="flex-grow border rounded-md p-2"
+                      disabled={isLoading}
+                    />
+                  )}
+                />
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
@@ -126,71 +179,67 @@ const CardEdit: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
                 <Controller
-                  name="tel1"
+                  name="telefone1"
                   control={control}
                   render={({ field }) => (
-                  <input {...field}
-                    type="text"
-                    value={formatPhoneNumber(formData.telefone1)}
-                    onChange={(e) => setFormData({ ...formData, telefone1: formatPhoneNumber(e.target.value) })}
-                    className="flex-grow border rounded-md p-2"
-                  />
-                )}
+                    <input {...field}
+                      type="text"
+                      value={formData.telefone1}
+                      onChange={(e) => setFormData({ ...formData, telefone1: e.target.value })}
+                      className="flex-grow border rounded-md p-2"
+                      disabled={isLoading}
+                    />
+                  )}
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
                 <Controller
-                  name="tel2"
+                  name="telefone2"
                   control={control}
                   render={({ field }) => (
-                  <input {...field}
-                    type="text"
-                    value={formatPhoneNumber(formData.telefone2)}
-                    onChange={(e) => setFormData({ ...formData, telefone2: formatPhoneNumber(e.target.value) })}
-                    className="flex-grow border rounded-md p-2"
-                  />
-                )}
+                    <input {...field}
+                      type="text"
+                      value={formData.telefone2}
+                      onChange={(e) => setFormData({ ...formData, telefone2: e.target.value })}
+                      className="flex-grow border rounded-md p-2"
+                      disabled={isLoading}
+                    />
+                  )}
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <label className="flex items-center">
+                <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={formData.situacao === 'A'}
-                    onChange={(e) => setFormData({ ...formData, situacao: e.target.checked ? 'A' : 'I' })}
+                    onChange={() => setFormData({ ...formData, situacao: formData.situacao === 'A' ? 'I' : 'A' })}
                     className="form-checkbox"
+                    disabled={isLoading}
                   />
-                  <span className="ml-2">Ativo</span>
+                  <span>Ativo</span>
                 </label>
               </div>
               <div className="flex items-center space-x-2">
-                <label className="flex items-center">
-                  <span className="mr-2">Repetição:</span>
-                  <input
-                    type="number"
-                    value={formData.repeticao}
-                    onChange={(e) => setFormData({ ...formData, repeticao: Number(e.target.value) })}
-                    className="w-20 border rounded-md p-2"
-                  />
-                </label>
+                <input
+                  type="number"
+                  value={formData.repeticao}
+                  onChange={(e) => setFormData({ ...formData, repeticao: parseInt(e.target.value) })}
+                  className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
+                />
               </div>
-              <div className="flex space-x-4">
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
+              <div className="flex space-x-2">
+                <button onClick={handleSave} className="px-4 py-2 bg-blue-500 text-white rounded" disabled={isLoading}>
                   Salvar
                 </button>
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-                >
+                <button onClick={handleCancel} className="px-4 py-2 bg-gray-300 rounded" disabled={isLoading}>
                   Cancelar
                 </button>
               </div>
@@ -203,7 +252,7 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <span>{formatCnpj(card.cnpj)}</span>
+                <span>{card.cnpj}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
@@ -211,23 +260,19 @@ const CardEdit: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
-                <span>{formatPhoneNumber(card.telefone1)}</span>
+                <span>{card.telefone1}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
-                <span>{formatPhoneNumber(card.telefone2)}</span>
+                <span>{card.telefone2}</span>
               </div>
-              <button
-                onClick={() => handleEdit(card)}
-                className="self-end px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-              >
+              <button onClick={() => handleEdit(card)} className="px-4 py-2 bg-blue-500 text-white rounded">
                 Editar
               </button>
             </>
           )}
         </div>
       ))}
-      
     </div>
   );
 };

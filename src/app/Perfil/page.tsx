@@ -1,18 +1,35 @@
-'use client'
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { perfil } from '@/helpers/data';  // Ajuste o caminho de importação conforme necessário
+import axiosInstance from '@/instance/axiosInstance'; // Ajuste o caminho conforme necessário
 
 const Perfil: React.FC = () => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
     const [selectedProfile, setSelectedProfile] = useState<any>(null); // Definir o tipo do estado
-    
-    const emailProfiles = perfil.map(item => ({
-        value: item.id,
-        label: item.titulo,
-        conteudo: item.conteudo,
-    }));
+    const [emailProfiles, setEmailProfiles] = useState<any[]>([]); // Estado para perfis de email
+    const [isLoading, setIsLoading] = useState(false); // Estado para controle de carregamento
+    const [hasError, setHasError] = useState(false); // Estado para controle de erros
+
+    // Função para buscar perfis da API
+    const fetchPerfis = async () => {
+        try {
+            const response = await axiosInstance.get('/list-perfil');
+            const profiles = response.data.map((item: any) => ({
+                value: item.id,
+                label: item.nm_titulo,
+                conteudo: item.ds_conteudo,
+            }));
+            setEmailProfiles(profiles);
+        } catch (error) {
+            console.error('Erro ao buscar perfis:', error);
+        }
+    };
+
+    // Carregar os perfis quando o componente for montado
+    useEffect(() => {
+        fetchPerfis();
+    }, []);
 
     const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(event.target.value);
@@ -33,7 +50,7 @@ const Perfil: React.FC = () => {
         }
     };
 
-    const handleSaveClick = () => {
+    const handleSaveClick = async () => {
         if (!title.trim()) {
             alert('O título não pode estar vazio.');
             return;
@@ -42,11 +59,28 @@ const Perfil: React.FC = () => {
             alert('O corpo do email não pode estar vazio.');
             return;
         }
-        
-        console.log('Dados a serem enviados:', { title, body});
+
+        setIsLoading(true);
+        setHasError(false);
+
+        try {
+            await axiosInstance.post('/create-perfil', { nm_titulo: title, ds_conteudo: body });
+            alert('Perfil salvo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao salvar perfil:', error);
+            setHasError(true);
+            alert('Erro ao salvar perfil. Por favor, tente novamente.');
+        } finally {
+            // Limpar campos e restaurar estado
+            setTitle('');
+            setBody('');
+            setSelectedProfile(null);
+            setIsLoading(false);
+            fetchPerfis();
+        }
     };
 
-    const handleEditClick = () => {
+    const handleEditClick = async () => {
         if (!title.trim()) {
             alert('O título não pode estar vazio.');
             return;
@@ -56,7 +90,29 @@ const Perfil: React.FC = () => {
             return;
         }
 
-        console.log('Edição:', { title, body, perfil: selectedProfile.value });
+        if (!selectedProfile?.value) {
+            alert('Nenhum perfil selecionado para editar.');
+            return;
+        }
+
+        setIsLoading(true);
+        setHasError(false);
+
+        try {
+            await axiosInstance.put(`/update-perfil/${selectedProfile.value}`, { nm_titulo: title, ds_conteudo: body });
+            alert('Perfil atualizado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao atualizar perfil:', error);
+            setHasError(true);
+            alert('Erro ao atualizar perfil. Por favor, tente novamente.');
+        } finally {
+            // Limpar campos e restaurar estado
+            setTitle('');
+            setBody('');
+            setSelectedProfile(null);
+            setIsLoading(false);
+            fetchPerfis();
+        }
     };
 
     const handleCancelClick = () => {
@@ -75,6 +131,7 @@ const Perfil: React.FC = () => {
                 options={emailProfiles}
                 onChange={handleProfileChange}
                 isClearable
+                isDisabled={isLoading}
             />
             
             <label className="block mt-4 mb-2">Título:</label>
@@ -83,6 +140,7 @@ const Perfil: React.FC = () => {
                 value={title}
                 onChange={handleTitleChange}
                 className="w-full p-2 border rounded"
+                disabled={isLoading}
             />
 
             <label className="block mt-4 mb-2">Corpo do Email:</label>
@@ -92,6 +150,7 @@ const Perfil: React.FC = () => {
                 rows={6}
                 className="w-full p-2 border rounded"
                 placeholder="Use macros: @nome@, @cnpj@, @email@, @cadastro@, @tel1@, @tel2@"
+                disabled={isLoading}
             />
 
             <div className="mt-4 flex space-x-2">
@@ -99,20 +158,23 @@ const Perfil: React.FC = () => {
                     <button
                         onClick={handleEditClick}
                         className="px-4 py-2 bg-blue-500 text-white rounded"
+                        disabled={isLoading}
                     >
-                        Editar
+                        {isLoading ? 'Atualizando...' : 'Editar'}
                     </button>
                 ) : (
                     <button
                         onClick={handleSaveClick}
                         className="px-4 py-2 bg-blue-500 text-white rounded"
+                        disabled={isLoading}
                     >
-                        Salvar
+                        {isLoading ? 'Enviando...' : 'Salvar'}
                     </button>
                 )}
                 <button
                     onClick={handleCancelClick}
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                    disabled={isLoading}
                 >
                     Cancelar
                 </button>

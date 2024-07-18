@@ -35,6 +35,10 @@ const Menu = () => {
     setMenuOpen(!menuOpen);
   };
 
+  const handleEmailClick = () => {
+    sessionStorage.clear(); // Limpar sessionStorage ao clicar em "Email"
+  };
+
   return (
     <nav className="bg-gray-800 text-white">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -83,6 +87,7 @@ const Menu = () => {
                             ? "text-white text-lg font-bold"
                             : "text-gray-300 hover:text-white"
                         }`}
+                        onClick={link.name === "Email" ? handleEmailClick : undefined}
                       >
                         {link.icon}
                         <span>{link.name}</span>
