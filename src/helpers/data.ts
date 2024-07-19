@@ -1,5 +1,5 @@
 export const data = [
-    { id: 1, nome: 'Empresa A', cnpj: '11111111000111', email: 'empresaA@example.com', telefone1: '1111111111', telefone2: '1111111111', data_criacao: '2024-01-01', dt_vencimento: '2025-01-01', repeticao: 3 , situacao: 'A' },
+    { id: 1, nome: 'Empresa A', cnpj: '11111111000111', email: 'bruno.santos6@ftc.edu.br', telefone1: '1111111111', telefone2: '1111111111', data_criacao: '2024-01-01', dt_vencimento: '2025-01-01', repeticao: 3 , situacao: 'A' },
     { id: 2, nome: 'Empresa B', cnpj: '22222222000222', email: 'empresaB@example.com', telefone1: '2222222222', telefone2: '1111111111', data_criacao: '2024-02-01', dt_vencimento: '2025-02-01', repeticao: 3 , situacao: 'A' },
     { id: 3, nome: 'Empresa C', cnpj: '33333333000333', email: 'empresaC@example.com', telefone1: '3333333333', telefone2: '1111111111', data_criacao: '2024-03-01', dt_vencimento: '2023-07-01', repeticao: 3 , situacao: 'A' },
     { id: 4, nome: 'Empresa D', cnpj: '44444444000444', email: 'empresaD@example.com', telefone1: '4444444444', telefone2: '1111111111', data_criacao: '2024-04-01', dt_vencimento: '2024-07-01', repeticao: 3 , situacao: 'A' },

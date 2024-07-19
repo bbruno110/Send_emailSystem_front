@@ -4,26 +4,7 @@ import axiosInstance from '@/instance/axiosInstance';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm, Controller } from 'react-hook-form';
-
-// Função para formatar CNPJ
-const formatCnpj = (value: string): string => {
-  const numericValue = value.replace(/\D/g, '');
-  const formattedValue = numericValue
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
-  return formattedValue.slice(0, 18);
-};
-
-// Função para formatar números de telefone
-const formatPhoneNumber = (value: string): string => {
-  const numericValue = value.replace(/\D/g, '');
-  const formattedValue = numericValue
-    .replace(/^(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2');
-  return formattedValue.slice(0, 15);
-};
+import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
 
 const schema = yup.object().shape({
   nome: yup.string().required('Nome é obrigatório'),

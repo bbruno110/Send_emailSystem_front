@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
 import { HiDevicePhoneMobile } from "react-icons/hi2";
 import { FiCalendar, FiAlertCircle } from 'react-icons/fi';
-import { usePathname } from 'next/navigation'; // Importando o hook usePathname
 import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
 
 interface CardProps {
@@ -11,9 +9,8 @@ interface CardProps {
   nome: string;
   cnpj: string;
   email: string;
-  telefone1: string;
-  telefone2: string;
-  data_criacao?: string;
+  telefone1?: string;
+  telefone2?: string;
   dt_vencimento: string;
   selected: boolean;
   onClick: () => void;
@@ -27,7 +24,6 @@ const Card: React.FC<CardProps> = ({
   email,
   telefone1,
   telefone2,
-  data_criacao,
   dt_vencimento,
   selected,
   onClick,
@@ -36,7 +32,6 @@ const Card: React.FC<CardProps> = ({
   const isDueSoon = isDateDueSoon(dt_vencimento);
   const isOverdue = isDateOverdue(dt_vencimento);
 
-  // Determina a cor da borda com base na situação do vencimento
   let borderColorClass = 'border-gray-300'; // Cor padrão
 
   if (isOverdue) {
@@ -45,11 +40,9 @@ const Card: React.FC<CardProps> = ({
     borderColorClass = 'border-yellow-500'; // Card próximo a vencer
   }
 
-  const pathname = usePathname(); // Obtendo o pathname atual
-
   return (
     <div
-      className={`border rounded-lg p-4 mb-4 cursor-pointer ${selected ? 'bg-blue-100' : 'bg-white'} ${borderColorClass}`}
+      className={`card-container border ${borderColorClass} rounded-lg h-72 flex flex-col p-4 mb-4 cursor-pointer ${selected ? 'bg-blue-100' : 'bg-white'}`}
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
@@ -65,15 +58,19 @@ const Card: React.FC<CardProps> = ({
         <HiOutlineMail className="text-gray-400 mr-2" />
         <p className="text-sm text-gray-600">Email: {email}</p>
       </div>
-      <div className="flex items-center mb-2">
-        <HiOutlinePhone className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Telefone 1: {formatPhoneNumber(telefone1)}</p>
-      </div>
-      <div className="flex items-center mb-2">
-        <HiDevicePhoneMobile className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Telefone 2: { formatPhoneNumber(telefone2)}</p>
-      </div>
-      <div className={`flex items-center ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
+      {telefone1 && (
+        <div className="flex items-center mb-2">
+          <HiOutlinePhone className="text-gray-400 mr-2" />
+          <p className="text-sm text-gray-600">Telefone 1: {formatPhoneNumber(telefone1)}</p>
+        </div>
+      )}
+      {telefone2 && (
+        <div className="flex items-center mb-2">
+          <HiDevicePhoneMobile className="text-gray-400 mr-2" />
+          <p className="text-sm text-gray-600">Telefone 2: {formatPhoneNumber(telefone2)}</p>
+        </div>
+      )}
+      <div className={`flex items-center flex-grow ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
         <FiCalendar className="text-gray-400 mr-2" />
         <p className="text-sm text-gray-600">Data de Vencimento: {formatDate(dt_vencimento)}</p>
         {isDueSoon && (

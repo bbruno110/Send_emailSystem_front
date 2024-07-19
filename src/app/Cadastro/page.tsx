@@ -99,7 +99,7 @@ const RegisterForm = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen md:mt-[-65px] bg-blue-100 select-none">
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title='Editar Cadastro'>
         <CardEdit/>
       </Modal>
 

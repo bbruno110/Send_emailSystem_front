@@ -4,9 +4,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  title: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -28,7 +29,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
       <div className="bg-white rounded-lg overflow-hidden w-full max-w-xl h-full max-h-[80%] md:max-w-2xl md:max-h-[70%]">
         <div className="relative h-full ">
           <div className="sticky top-0 bg-white z-10 flex justify-between items-center border-b p-4 mb-2">
-            <h2 className="text-xl font-semibold">Editar Empresa</h2>
+            <h2 className="text-xl font-semibold">{title}</h2>
             <button
               onClick={onClose}
               className="text-gray-700 hover:text-gray-900 text-2xl px-2"

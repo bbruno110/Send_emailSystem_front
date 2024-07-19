@@ -1,14 +1,31 @@
-'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from './Card';
-import { data } from '@/helpers/data'; // Import data
-import { useRouter } from 'next/navigation'; // Import useRouter hook
+import axiosInstance from '@/instance/axiosInstance';
+import { useRouter } from 'next/navigation';
 
 const Cards: React.FC = () => {
-    const router = useRouter(); // Initialize useRouter hook
+    const router = useRouter();
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
     const [contextMenuVisible, setContextMenuVisible] = useState(false);
     const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+    const [cardsData, setCardsData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchCardsData = async () => {
+            try {
+                const response = await axiosInstance.get('/empresas/list');
+                setCardsData(response.data);
+                setLoading(false);
+            } catch (error) {
+                setError('Erro ao carregar os dados.');
+                setLoading(false);
+            }
+        };
+
+        fetchCardsData();
+    }, []);
 
     const toggleCardSelection = (id: number) => {
         setSelectedCards((prevCards) =>
@@ -30,13 +47,13 @@ const Cards: React.FC = () => {
     };
 
     const selectAllCards = () => {
-        setSelectedCards(sortedData.map(card => card.id)); // Select all cards
-        setContextMenuVisible(false); // Hide context menu after selecting all
+        setSelectedCards(cardsData.map(card => card.id));
+        setContextMenuVisible(false);
     };
 
     const getSelectedEmails = (): string[] => {
         return selectedCards
-            .map(cardId => data.find(card => card.id === cardId)?.email)
+            .map(cardId => cardsData.find(card => card.id === cardId)?.ds_email)
             .filter(Boolean) as string[];
     };
 
@@ -47,12 +64,9 @@ const Cards: React.FC = () => {
             return;
         }
 
-        console.log('Emails selecionados:', emails); // Log emails selecionados
+        console.log('Emails selecionados:', emails);
 
-        // Store emails in sessionStorage
         sessionStorage.setItem('selectedEmails', JSON.stringify(emails));
-
-        // Redirect to '/Email'
         router.push(`/Email`);
     };
 
@@ -63,26 +77,35 @@ const Cards: React.FC = () => {
         toggleCardSelection(id);
     };
 
-    const sortedData = [...data].sort((a, b) => {
-        const dateA = new Date(a.dt_vencimento); // Convert strings to dates
+    if (loading) {
+        return <p>Carregando...</p>;
+    }
+
+    if (error) {
+        return <p>{error}</p>;
+    }
+
+    const sortedData = [...cardsData].sort((a, b) => {
+        const dateA = new Date(a.dt_vencimento);
         const dateB = new Date(b.dt_vencimento);
         return dateA.getTime() - dateB.getTime();
     });
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 select-none">
-            {sortedData.map(({ id, nome, cnpj, email, telefone1, telefone2, dt_vencimento }) => (
+            {sortedData.map(({ id, ds_nome, cd_cnpj, ds_email, nr_telefone_1, nr_telefone_2, dt_vencimento }) => (
                 <div
                     key={id}
+                    className="card-container"
                     onContextMenu={(e) => handleContextMenu(e, id)}
                 >
                     <Card
                         id={id}
-                        nome={nome}
-                        cnpj={cnpj}
-                        email={email}
-                        telefone1={telefone1}
-                        telefone2={telefone2}
+                        nome={ds_nome}
+                        cnpj={cd_cnpj}
+                        email={ds_email}
+                        telefone1={nr_telefone_1}
+                        telefone2={nr_telefone_2}
                         dt_vencimento={dt_vencimento}
                         selected={selectedCards.includes(id)}
                         onClick={() => handleCardClick(id)}

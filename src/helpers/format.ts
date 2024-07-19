@@ -14,16 +14,23 @@ export const formatCnpj = (value: string): string => {
     return formattedValue.slice(0, 18); // CNPJ tem 14 caracteres formatados
   };
   
-  // Função para formatar números de telefone
-  export const formatPhoneNumber = (value: string): string => {
-    // Remove caracteres não numéricos
-    const numericValue = value.replace(/\D/g, '');
-  
-    // Formatação: (XX) XXXXX-XXXX
-    const formattedValue = numericValue
-      .replace(/^(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2');
-  
-    // Limita a quantidade de caracteres após a formatação
-    return formattedValue.slice(0, 15); // Telefone tem 15 caracteres formatados
-  };
+// Função para formatar números de telefone
+export const formatPhoneNumber = (value: any): string => {
+  // Assegura que `value` é uma string
+  const stringValue = String(value);
+
+  // Remove caracteres não numéricos
+  const numericValue = stringValue.replace(/\D/g, '');
+
+  // Verifica se o número possui 10 ou 11 dígitos
+  if (numericValue.length === 10) {
+    // Formatação para números com 10 dígitos: (XX) XXXX-XXXX
+    return numericValue.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  } else if (numericValue.length === 11) {
+    // Formatação para números com 11 dígitos: (XX) XXXXX-XXXX
+    return numericValue.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  } else {
+    // Retorna o valor original caso não seja um número válido
+    return stringValue;
+  }
+};
