@@ -3,23 +3,26 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { FaHome, FaHistory, FaEnvelope, FaCaretDown } from "react-icons/fa";
+import { FaHome, FaHistory, FaEnvelope } from "react-icons/fa";
 import { BsFillPeopleFill } from "react-icons/bs";
+import Image from "next/image";
+import Logo from '../assets/Logo.png';
+import logob from '../assets/Logo_b.png';
 
 const links = [
-  { id: 1, name: "Início", link: "/", icon: <FaHome /> },
+  { id: 1, name: "Início", link: "/", icon: <FaHome size={26}/> },
   {
     id: 2,
     name: "Cadastros",
     link: "#",
-    icon: <BsFillPeopleFill />,
+    icon: <BsFillPeopleFill size={26}/>,
     submenu: [
       { id: 5, name: "Cadastro CNPJ", link: "/Cadastro" },
       { id: 6, name: "Cadastro Perfil", link: "/Perfil" },
     ],
   },
-  { id: 3, name: "Histórico", link: "/Historico", icon: <FaHistory /> },
-  { id: 4, name: "Email", link: "/Email", icon: <FaEnvelope /> },
+  { id: 3, name: "Histórico", link: "/Historico", icon: <FaHistory size={26} /> },
+  { id: 4, name: "Email", link: "/Email", icon: <FaEnvelope size={26}/> },
 ];
 
 const Menu = () => {
@@ -40,7 +43,7 @@ const Menu = () => {
   };
 
   return (
-    <nav className="bg-gray-800 text-white">
+    <nav className="bg-gray-800 text-white select-none">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -69,23 +72,24 @@ const Menu = () => {
             </button>
           </div>
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
-            <div className="flex-shrink-0">
-              <Link href="/" className="text-2xl font-bold">
-                Logo
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="flex items-center">
+                <Image src={Logo} alt="Logo" className="object-fill w-14" />
+                <Image src={logob} alt="Logo" className="object-fill w-[88px]"/>
               </Link>
             </div>
-            <div className="hidden sm:block sm:ml-6">
-              <div className="flex space-x-4">
+            <div className="hidden sm:flex sm:ml-6">
+              <div className="flex space-x-4 items-center h-full">
                 {links.map((link) => (
-                  <div key={link.id} className="relative group">
+                  <div key={link.id} className="relative group flex items-center">
                     <Link href={link.link}>
                       <span
-                        className={`px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2 cursor-pointer ${
+                        className={`px-3 h-16 rounded-md text-xl font-medium flex items-center space-x-2 cursor-pointer ${
                           activeTab === link.link ||
                           (link.submenu &&
                             link.submenu.some((subLink) => activeTab === subLink.link))
                             ? "text-white text-lg font-bold"
-                            : "text-gray-300 hover:text-white"
+                            : "text-gray-300 hover:text-white hover:bg-gray-900"
                         }`}
                         onClick={link.name === "Email" ? handleEmailClick : undefined}
                       >

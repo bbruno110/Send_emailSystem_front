@@ -66,7 +66,7 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg h-auto flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''}`}
+      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg h-full flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''}`}
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
