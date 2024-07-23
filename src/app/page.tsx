@@ -93,7 +93,7 @@ const Home: React.FC = () => {
             onSelect={setVencimentoFilter}
             options={vencimentoOptions}
             placeholder="Filtrar por vencimento"
-            className="w-full md:w-[200px] z-10"
+            className="w-full md:w-[200px] z-30"
           />
           <input
             type="date"
