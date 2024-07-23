@@ -94,4 +94,8 @@
   .invisible-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
   }
+  .dropdown {
+    position: absolute;
+    z-index: 1000; /* Ajuste conforme necessário */
+  }
 }

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '@/instance/axiosInstance';
 import { useRouter } from 'next/navigation';
 import Card from './Card'; // Certifique-se de que o caminho para o Card está correto
+import ModalStatus from './modalStatus'; // Importa o componente ModalStatus
 
 interface CardsProps {
   statusFilter: string;
@@ -27,6 +28,10 @@ const Cards: React.FC<CardsProps> = ({
   const [cardsData, setCardsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Referência para o menu de contexto
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCardsData = async () => {
@@ -45,7 +50,6 @@ const Cards: React.FC<CardsProps> = ({
         });
         clearSelection();
         setCardsData(response.data.empresas);
-        //console.log('Dados dos cartões atualizados:', response.data.empresas);
       } catch (error) {
         setError('Erro ao carregar os dados.');
         console.error('Erro ao carregar os dados:', error);
@@ -57,7 +61,21 @@ const Cards: React.FC<CardsProps> = ({
     fetchCardsData();
   }, [statusFilter, vencimentoFilter, startDate, endDate, currentPage, itemsPerPage]);
 
-   const toggleCardSelection = (id: number) => {
+  // Adiciona o listener para cliques fora do menu de contexto
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenuVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const toggleCardSelection = (id: number) => {
     setSelectedCards(prevCards =>
       prevCards.includes(id)
         ? prevCards.filter(cardId => cardId !== id)
@@ -98,6 +116,45 @@ const Cards: React.FC<CardsProps> = ({
 
     sessionStorage.setItem('selectedEmails', JSON.stringify(emails));
     router.push(`/Email`);
+  };
+
+  const openModalStatus = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModalStatus = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSaveStatus = async (status: string) => {
+    try {
+      // Atualiza o status das empresas no servidor
+      await axiosInstance.put('/update-status', {
+        ids: selectedCards,
+        ie_status: status
+      });
+  
+      // Atualiza os dados dos cartões após a alteração
+      const response = await axiosInstance.get('/empresas/list', {
+        params: {
+          ie_status: statusFilter,
+          start_date: startDate,
+          end_date: endDate,
+          pagina: currentPage,
+          itensPorPagina: itemsPerPage,
+          statusVencimento: vencimentoFilter
+        }
+      });
+      setCardsData(response.data.empresas);
+  
+      // Limpa a seleção e fecha o modal
+      clearSelection();
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      alert('Erro ao alterar status.');
+    } finally {
+      closeModalStatus();
+    }
   };
 
   const handleCardClick = (id: number) => {
@@ -146,6 +203,7 @@ const Cards: React.FC<CardsProps> = ({
 
       {selectedCards.length > 0 && contextMenuVisible && (
         <div
+          ref={contextMenuRef} // Adiciona a referência aqui
           className="fixed z-50 bg-white border border-gray-300 shadow-lg p-2"
           style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
         >
@@ -158,8 +216,17 @@ const Cards: React.FC<CardsProps> = ({
           <button className="block w-full text-left py-2 px-4 hover:bg-gray-200" onClick={sendEmail}>
             Enviar e-mail
           </button>
+          <button className="block w-full text-left py-2 px-4 hover:bg-gray-200" onClick={openModalStatus}>
+            Alterar status
+          </button>
         </div>
       )}
+
+      <ModalStatus
+        isOpen={isModalOpen}
+        onClose={closeModalStatus}
+        onSave={handleSaveStatus}
+      />
     </div>
   );
 };

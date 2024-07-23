@@ -118,27 +118,27 @@ const Historico: React.FC = () => {
   };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
+    <div className="w-full p-4">
+      <div className="flex flex-col md:flex-row items-center md:items-start mb-4 gap-4">
         <Button variant="outline" onClick={exportToPDF} className="flex items-center">
           <FileText className="mr-2 h-4 w-4" />
-          Export to PDF
+          Exportar para PDF
         </Button>
-        <Button variant="outline" onClick={navigateToOtherPage} className="flex items-center ml-4">
+        <Button variant="outline" onClick={navigateToOtherPage} className="flex items-center">
           <ArrowRight className="mr-2 h-4 w-4" />
-          Go to Other Page
+          Ir para outra página
         </Button>
       </div>
       {isLoading ? (
-        <div>Loading...</div>
+        <div className="text-center">Carregando...</div>
       ) : (
-        <div className="rounded-md border">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-left p-2">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -155,7 +155,7 @@ const Historico: React.FC = () => {
                 table.getRowModel().rows.map(row => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="p-2">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -167,7 +167,7 @@ const Historico: React.FC = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    Nenhum resultado encontrado.
                   </TableCell>
                 </TableRow>
               )}

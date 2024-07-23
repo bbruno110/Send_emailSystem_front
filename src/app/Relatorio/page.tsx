@@ -168,59 +168,66 @@ const Relatorio: React.FC = () => {
 
   return (
     <div className="w-full p-4">
-      <div className="mb-4 flex items-center">
-        <label className="mr-2" htmlFor="startDate">Data Inicial:</label>
-        <input
-          type="date"
-          id="startDate"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="mr-4"
-        />
-        <label className="mr-2" htmlFor="endDate">Data Final:</label>
-        <input
-          type="date"
-          id="endDate"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="mr-4"
-        />
-        <Button onClick={fetchData} className="flex items-center mr-2">
-          <Calendar className="mr-2 h-4 w-4" />
-          Buscar
-        </Button>
-        <Button onClick={clearFilters} className="flex items-center">
-          <X className="mr-2 h-4 w-4" />
-          Limpar
-        </Button>
+      {/* Container for filters and buttons */}
+      <div className="mb-4 flex flex-col md:flex-row items-start gap-4">
+        {/* Filters section */}
+        <div className="flex flex-col md:flex-row items-center mb-4 md:mb-0 gap-2">
+          <label className="mr-2" htmlFor="startDate">Data Inicial:</label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="mr-4 border border-gray-300 p-2 rounded"
+          />
+          <label className="mr-2" htmlFor="endDate">Data Final:</label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="mr-4 border border-gray-300 p-2 rounded"
+          />
+          <Button onClick={fetchData} className="flex items-center mr-2">
+            <Calendar className="mr-2 h-4 w-4" />
+            Buscar
+          </Button>
+          <Button onClick={clearFilters} className="flex items-center">
+            <X className="mr-2 h-4 w-4" />
+            Limpar
+          </Button>
+        </div>
+
+        {/* Export and navigate buttons */}
+        <div className="flex flex-col md:flex-row items-center gap-2">
+          <Button variant="outline" onClick={exportToPDF} className="flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            Exportar para PDF
+          </Button>
+          <Button onClick={navigateToHistorico} className="flex items-center">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para Histórico
+          </Button>
+        </div>
       </div>
 
-      <div className="flex items-center py-4">
-        <Button variant="outline" onClick={exportToPDF} className="flex items-center mr-2">
-          <FileText className="mr-2 h-4 w-4" />
-          Exportar para PDF
-        </Button>
-        <Button onClick={navigateToHistorico} className="flex items-center">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar para Histórico
-        </Button>
-      </div>
-
+      {/* Total section */}
       <div className="mb-4">
         <label className="font-semibold">Total de Processos:</label>
         <span>{total.toFixed(2)}</span>
       </div>
 
+      {/* Table section */}
       {isLoading ? (
-        <div>Carregando...</div>
+        <div className="text-center">Carregando...</div>
       ) : (
-        <div className="rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="p-2 text-left">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -237,7 +244,7 @@ const Relatorio: React.FC = () => {
                 table.getRowModel().rows.map(row => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="p-2">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

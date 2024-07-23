@@ -86,14 +86,14 @@ const Home: React.FC = () => {
             onSelect={setStatusFilter}
             options={statusOptions}
             placeholder="Filtrar por status"
-            className="w-full md:w-[200px]"
+            className="w-full md:w-[200px] z-40"
           />
           <Combobox
             value={vencimentoFilter}
             onSelect={setVencimentoFilter}
             options={vencimentoOptions}
             placeholder="Filtrar por vencimento"
-            className="w-full md:w-[200px]"
+            className="w-full md:w-[200px] z-10"
           />
           <input
             type="date"
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
               direction='up'
               options={itemsPerPageOptions}
               placeholder="Itens por página"
-              className="w-full md:w-[175px]"
+              className="w-full md:w-[190px]"
             />
           </div>
           <button

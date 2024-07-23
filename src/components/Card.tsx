@@ -3,6 +3,7 @@ import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-ic
 import { HiDevicePhoneMobile } from 'react-icons/hi2';
 import { FiCalendar, FiAlertCircle, FiDollarSign, FiClock, FiCheckCircle, FiXCircle, FiRefreshCcw } from 'react-icons/fi';
 import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
+import modalStatus from './modalStatus';
 
 interface CardProps {
   id: number;
