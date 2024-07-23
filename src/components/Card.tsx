@@ -1,7 +1,7 @@
 import React from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
-import { HiDevicePhoneMobile } from "react-icons/hi2";
-import { FiCalendar, FiAlertCircle } from 'react-icons/fi';
+import { HiDevicePhoneMobile } from 'react-icons/hi2';
+import { FiCalendar, FiAlertCircle, FiDollarSign, FiClock, FiCheckCircle, FiXCircle, FiRefreshCcw } from 'react-icons/fi';
 import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
 
 interface CardProps {
@@ -12,10 +12,21 @@ interface CardProps {
   telefone1?: string;
   telefone2?: string;
   dt_vencimento: string;
+  dt_processo: string;
+  nr_valor: string;
   selected: boolean;
+  ie_status: string;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
+
+const statusIcons: { [key: string]: React.ReactNode } = {
+  'Inicial': <FiCheckCircle className="text-green-500" title="Inicial" />,
+  'Em Progresso': <FiRefreshCcw className="text-yellow-500" title="Em Progresso" />,
+  'Concluído': <FiCheckCircle className="text-blue-500" title="Concluído" />,
+  'Cancelado': <FiXCircle className="text-red-500" title="Cancelado" />,
+  // Adicione outros status e ícones conforme necessário
+};
 
 const Card: React.FC<CardProps> = ({
   id,
@@ -25,6 +36,9 @@ const Card: React.FC<CardProps> = ({
   telefone1,
   telefone2,
   dt_vencimento,
+  dt_processo,
+  nr_valor,
+  ie_status,
   selected,
   onClick,
   onContextMenu,
@@ -32,17 +46,26 @@ const Card: React.FC<CardProps> = ({
   const isDueSoon = isDateDueSoon(dt_vencimento);
   const isOverdue = isDateOverdue(dt_vencimento);
 
+  // Definir classes de estilo baseadas no estado do vencimento e seleção
   let borderColorClass = 'border-gray-300'; // Cor padrão
+  let backgroundColorClass = 'bg-white'; // Cor padrão do fundo
 
   if (isOverdue) {
     borderColorClass = 'border-red-500'; // Card vencido
+    backgroundColorClass = 'bg-red-50'; // Fundo para vencido
   } else if (isDueSoon) {
     borderColorClass = 'border-yellow-500'; // Card próximo a vencer
+    backgroundColorClass = 'bg-yellow-50'; // Fundo para próximo a vencer
   }
+
+  // Aplica cor mais escura e sombra quando o card está selecionado
+  const selectedBackgroundClass = selected
+    ? 'bg-gray-200 border-blue-500 shadow-md' // Cor de fundo mais escura e borda azul
+    : backgroundColorClass;
 
   return (
     <div
-      className={`card-container border ${borderColorClass} rounded-lg h-72 flex flex-col p-4 mb-4 cursor-pointer ${selected ? 'bg-blue-100' : 'bg-white'}`}
+      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg h-auto flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''}`}
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
@@ -70,7 +93,7 @@ const Card: React.FC<CardProps> = ({
           <p className="text-sm text-gray-600">Telefone 2: {formatPhoneNumber(telefone2)}</p>
         </div>
       )}
-      <div className={`flex items-center flex-grow ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
+      <div className={`flex items-center mb-2 ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
         <FiCalendar className="text-gray-400 mr-2" />
         <p className="text-sm text-gray-600">Data de Vencimento: {formatDate(dt_vencimento)}</p>
         {isDueSoon && (
@@ -79,6 +102,18 @@ const Card: React.FC<CardProps> = ({
         {isOverdue && (
           <FiAlertCircle className="ml-2 text-red-500" title="Vencido" />
         )}
+      </div>
+      <div className="flex items-center mb-2">
+        <FiClock className="text-gray-400 mr-2" />
+        <p className="text-sm text-gray-600">Data de Processo: {formatDate(dt_processo)}</p>
+      </div>
+      <div className="flex items-center mb-2">
+        <FiDollarSign className="text-gray-400 mr-2" />
+        <p className="text-sm text-gray-600">Valor: R$ {nr_valor}</p>
+      </div>
+      <div className="flex items-center mt-2">
+        {statusIcons[ie_status] || <FiAlertCircle className="text-gray-400" title="Status desconhecido" />}
+        <p className="text-sm ml-2 text-gray-600">{ie_status}</p>
       </div>
     </div>
   );

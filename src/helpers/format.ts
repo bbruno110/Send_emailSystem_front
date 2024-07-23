@@ -34,3 +34,24 @@ export const formatPhoneNumber = (value: any): string => {
     return stringValue;
   }
 };
+
+export const formatCurrency = (value: string) => {
+  if (!value) return ''; // Retorna uma string vazia se o valor for vazio
+
+  // Remove todos os caracteres não numéricos
+  const numericValue = value.replace(/\D/g, '');
+
+  // Converte a string numérica para número e divide por 100
+  const number = parseFloat(numericValue) / 100;
+
+  // Converte o número para o formato desejado
+  return number.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+export const parseCurrency = (value: string) => {
+  const numericValue = value.replace(/\D/g, '');
+  return parseFloat(numericValue) / 100;
+};

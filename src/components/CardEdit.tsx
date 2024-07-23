@@ -4,14 +4,21 @@ import axiosInstance from '@/instance/axiosInstance';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm, Controller } from 'react-hook-form';
-import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
+import { formatCnpj, formatPhoneNumber, formatCurrency, parseCurrency } from '@/helpers/format';
 
+interface CardEditProps {
+  searchTerm: string;
+}
+
+// Atualizando o schema de validação
 const schema = yup.object().shape({
   nome: yup.string().required('Nome é obrigatório'),
   cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido').required('CNPJ é obrigatório'),
   tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
   repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
+  nr_valor: yup.number().positive('Valor deve ser positivo').nullable(),
+  dt_processo: yup.date().nullable()
 });
 
 type Card = {
@@ -23,13 +30,13 @@ type Card = {
   telefone2: string;
   situacao: string;
   repeticao: number;
+  nr_valor?: number;
+  dt_processo?: Date;
 };
 
-const CardEdit: React.FC = () => {
-  const { control, handleSubmit, setValue, formState: { errors } } = useForm<Card>({
-    resolver: yupResolver(schema) as any,
-  });
+const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
   const [cards, setCards] = useState<Card[]>([]);
+  const [filteredData, setFilteredData] = useState<Card[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [formData, setFormData] = useState<Card>({
     id: 0,
@@ -40,8 +47,14 @@ const CardEdit: React.FC = () => {
     telefone2: '',
     situacao: 'A',
     repeticao: 1,
+    nr_valor: undefined,
+    dt_processo: undefined,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const { control, handleSubmit, setValue, formState: { errors } } = useForm<Card>({
+    resolver: yupResolver(schema) as any,
+  });
 
   useEffect(() => {
     axiosInstance.get('/list')
@@ -55,6 +68,8 @@ const CardEdit: React.FC = () => {
           telefone2: formatPhoneNumber(card.nr_telefone_2),
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
+          nr_valor: card.nr_valor,
+          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined
         }));
         setCards(formattedCards);
       })
@@ -63,6 +78,20 @@ const CardEdit: React.FC = () => {
       });
   }, []);
 
+  useEffect(() => {
+    if (searchTerm) {
+      setFilteredData(
+        cards.filter((item) =>
+          item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.cnpj.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.email.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredData(cards);
+    }
+  }, [searchTerm, cards]);
+
   const handleEdit = (card: Card) => {
     setSelectedCardId(card.id);
     setFormData({
@@ -70,6 +99,7 @@ const CardEdit: React.FC = () => {
       cnpj: formatCnpj(card.cnpj),
       telefone1: formatPhoneNumber(card.telefone1),
       telefone2: formatPhoneNumber(card.telefone2),
+      nr_valor: card.nr_valor ?? 0, // Definindo valor padrão para formatação
     });
   };
 
@@ -84,6 +114,8 @@ const CardEdit: React.FC = () => {
         ds_email: formData.email,
         nr_repeticao: formData.repeticao,
         ie_situacao: formData.situacao,
+        nr_valor: formData.nr_valor,
+        dt_processo: formData.dt_processo,
       });
 
       setCards(prevCards =>
@@ -107,6 +139,8 @@ const CardEdit: React.FC = () => {
           telefone2: formatPhoneNumber(card.nr_telefone_2),
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
+          nr_valor: card.nr_valor,
+          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined
         }));
         setCards(formattedCards);
       })
@@ -121,9 +155,18 @@ const CardEdit: React.FC = () => {
     setSelectedCardId(null);
   };
 
+  // Função para formatar o valor em tempo real
+  const handleValueChange = (value: string) => {
+    const numericValue = parseCurrency(value);
+    setFormData({
+      ...formData,
+      nr_valor: isNaN(numericValue) ? undefined : numericValue
+    });
+  };
+
   return (
     <div className="space-y-4">
-      {cards.map((card) => (
+      {filteredData.map((card) => (
         <div key={card.id} className="p-4 border rounded-lg shadow-sm flex flex-col space-y-2">
           {selectedCardId === card.id ? (
             <>
@@ -195,7 +238,8 @@ const CardEdit: React.FC = () => {
                   )}
                 />
               </div>
-              <div className="flex items-center space-x-2">
+              {/* Campos ocultos */}
+              <div className="flex items-center space-x-2 mt-2">
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -207,26 +251,61 @@ const CardEdit: React.FC = () => {
                   <span>Ativo</span>
                 </label>
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  value={formData.repeticao}
-                  onChange={(e) => setFormData({ ...formData, repeticao: parseInt(e.target.value) })}
-                  className="flex-grow border rounded-md p-2"
-                  disabled={isLoading}
-                />
+              <div className="flex items-center space-x-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <span>Repetição:</span>
+                  <input
+                    type="number"
+                    value={formData.repeticao}
+                    onChange={(e) => setFormData({ ...formData, repeticao: Number(e.target.value) })}
+                    className="border rounded-md p-2"
+                    disabled={isLoading}
+                  />
+                </label>
               </div>
-              <div className="flex space-x-2">
-                <button onClick={handleSave} className="px-4 py-2 bg-blue-500 text-white rounded" disabled={isLoading}>
-                  Salvar
+              <div className="flex items-center space-x-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <span>Valor:</span>
+                  <input
+                    type="text"
+                    value={formData.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
+                    onChange={(e) => handleValueChange(e.target.value)}
+                    className="border rounded-md p-2"
+                    disabled={isLoading}
+                  />
+                </label>
+              </div>
+              <div className="flex items-center space-x-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <span>Data do Processo:</span>
+                  <input
+                    type="date"
+                    value={formData.dt_processo ? formData.dt_processo.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setFormData({ ...formData, dt_processo: e.target.value ? new Date(e.target.value) : undefined })}
+                    className="border rounded-md p-2"
+                    disabled={isLoading}
+                  />
+                </label>
+              </div>
+              <div className="flex space-x-4 mt-4">
+                <button
+                  onClick={handleSave}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Salvando...' : 'Salvar'}
                 </button>
-                <button onClick={handleCancel} className="px-4 py-2 bg-gray-300 rounded" disabled={isLoading}>
+                <button
+                  onClick={handleCancel}
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                  disabled={isLoading}
+                >
                   Cancelar
                 </button>
               </div>
             </>
           ) : (
-            <>
+            <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
                 <span>{card.nome}</span>
@@ -247,10 +326,13 @@ const CardEdit: React.FC = () => {
                 <HiOutlinePhone className="text-gray-500" />
                 <span>{card.telefone2}</span>
               </div>
-              <button onClick={() => handleEdit(card)} className="px-4 py-2 bg-blue-500 text-white rounded">
+              <button
+                onClick={() => handleEdit(card)}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
                 Editar
               </button>
-            </>
+            </div>
           )}
         </div>
       ))}
