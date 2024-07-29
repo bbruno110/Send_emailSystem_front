@@ -6,7 +6,7 @@ import Link from "next/link";
 import { FaHome, FaHistory, FaEnvelope } from "react-icons/fa";
 import { BsFillPeopleFill } from "react-icons/bs";
 import Image from "next/image";
-import Logo from '../assets/logo_D.png';
+import Logo from '../assets/logo_E.png';
 
 const links = [
   { id: 1, name: "Início", link: "/", icon: <FaHome size={26}/> },
@@ -73,7 +73,7 @@ const Menu = () => {
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
-                <Image src={Logo} alt="Logo" className=" object-contain h-16 w-40" />
+                <Image src={Logo} alt="Logo" className=" object-fill h-16 w-16" />
               </Link>
             </div>
             <div className="hidden sm:flex sm:ml-6">
