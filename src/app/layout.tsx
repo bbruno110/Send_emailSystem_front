@@ -21,16 +21,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="invisible-scrollbar">
-      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+      <body className={cn("min-h-screen font-sans antialiased ", fontSans.variable)}>
         <div className="flex flex-col min-h-screen">
-          <div className="z-10">
+          <div className="z-[100]">
             <Menu />
           </div>
-          <main className="flex-grow">
+          <main className="flex-grow pt-16"> {/* Ajuste o padding-top aqui */}
             {children}
           </main>
+          <footer className="bg-transparent">teste</footer>
         </div>
+        
       </body>
+      
     </html>
   );
 }

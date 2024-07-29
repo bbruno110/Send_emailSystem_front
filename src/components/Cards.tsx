@@ -173,10 +173,10 @@ const Cards: React.FC<CardsProps> = ({
     <div className="relative">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 select-none">
         {sortedData.length > 0 ? (
-          sortedData.map(({ id, ds_nome, cd_cnpj, ds_email, nr_telefone_1, nr_telefone_2, dt_vencimento, dt_processo, nr_valor, ie_status }) => (
+          sortedData.map(({ id, ds_nome, cd_cnpj, ds_email, nr_telefone_1, nr_telefone_2, dt_vencimento, dt_processo, nr_valor, ie_status, nr_processo }) => (
             <div
               key={id}
-              className={`card-container ${selectedCards.includes(id) ? 'bg-gray-200' : ''}`}
+              className={`card-container${selectedCards.includes(id) ? 'bg-gray-200 mt-[2px] mb-[2px] ' : ''}`}
               onContextMenu={(e) => handleContextMenu(e, id)}
             >
               <Card
@@ -190,6 +190,7 @@ const Cards: React.FC<CardsProps> = ({
                 dt_processo={dt_processo}
                 nr_valor={nr_valor}
                 ie_status={ie_status}
+                nr_processo={nr_processo}
                 selected={selectedCards.includes(id)}
                 onClick={() => handleCardClick(id)}
                 onContextMenu={(e) => handleContextMenu(e, id)}

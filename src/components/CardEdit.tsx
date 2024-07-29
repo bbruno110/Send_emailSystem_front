@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
+import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone, HiOutlineDocument } from 'react-icons/hi'; // Adiciona o ícone HiOutlineDocument
 import axiosInstance from '@/instance/axiosInstance';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -32,6 +32,7 @@ type Card = {
   repeticao: number;
   nr_valor?: number;
   dt_processo?: Date;
+  nr_processo?: number;
 };
 
 const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
@@ -49,6 +50,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
     repeticao: 1,
     nr_valor: undefined,
     dt_processo: undefined,
+    nr_processo: undefined,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -69,7 +71,8 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
           nr_valor: card.nr_valor,
-          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined
+          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
+          nr_processo: card.nr_processo,
         }));
         setCards(formattedCards);
       })
@@ -116,6 +119,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
         ie_situacao: formData.situacao,
         nr_valor: formData.nr_valor,
         dt_processo: formData.dt_processo,
+        nr_processo: formData.nr_processo
       });
 
       setCards(prevCards =>
@@ -140,7 +144,8 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
           nr_valor: card.nr_valor,
-          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined
+          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
+          nr_processo: card.nr_processo
         }));
         setCards(formattedCards);
       })
@@ -165,7 +170,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-28">
       {filteredData.map((card) => (
         <div key={card.id} className="p-4 border rounded-lg shadow-sm flex flex-col space-y-2">
           {selectedCardId === card.id ? (
@@ -177,6 +182,14 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
+                />
+                <HiOutlineDocument className="text-gray-500 ml-2" /> {/* Ícone para número do processo */}
+                <input
+                  type="number"
+                  value={formData.nr_processo}
+                  onChange={(e) =>  setFormData({ ...formData, nr_processo: Number(e.target.value) })}
+                  className="border rounded-md p-2 ml-2"
                   disabled={isLoading}
                 />
               </div>
@@ -309,6 +322,8 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
                 <span>{card.nome}</span>
+                <HiOutlineDocument className="text-gray-500 ml-2" /> {/* Ícone para número do processo */}
+                <span>{card.nr_processo}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />

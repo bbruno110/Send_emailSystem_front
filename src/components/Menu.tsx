@@ -1,5 +1,5 @@
-'use client'
 // components/Menu.tsx
+'use client'
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -7,7 +7,6 @@ import { FaHome, FaHistory, FaEnvelope } from "react-icons/fa";
 import { BsFillPeopleFill } from "react-icons/bs";
 import Image from "next/image";
 import Logo from '../assets/logo_D.png';
-
 
 const links = [
   { id: 1, name: "Início", link: "/", icon: <FaHome size={26}/> },
@@ -43,7 +42,7 @@ const Menu = () => {
   };
 
   return (
-    <nav className="bg-gray-800 text-white select-none">
+    <nav className="bg-gray-800 text-white select-none fixed top-0 left-0 w-full z-60 ">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">

@@ -4,7 +4,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState } from 'react';
 import * as yup from 'yup';
 import Modal from '@/components/Modal';
-import CardEdit from '@/components/CardEdit';
 import axiosInstance from '@/instance/axiosInstance';
 
 // Função para formatar o valor como moeda
@@ -58,7 +57,8 @@ const schema = yup.object().shape({
   tel2: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
   repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
-  dt_processo: yup.date().required('Data do processo é obrigatória')
+  dt_processo: yup.date().required('Data do processo é obrigatória'),
+  nr_processo: yup.number().typeError('Número do processo deve ser um número').required('Número do processo é obrigatório'),
 });
 
 type FormValues = {
@@ -70,10 +70,11 @@ type FormValues = {
   repeticao: number;
   dt_processo: string;
   nr_valor: string; // Alterado para string para permitir a formatação
+  nr_processo: number;
 };
 
 const RegisterForm = () => {
-  const { control, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormValues>({
+  const { control, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<FormValues>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       nome: '',
@@ -84,6 +85,7 @@ const RegisterForm = () => {
       repeticao: 0,
       dt_processo: '',
       nr_valor: '',
+      nr_processo: 0,
     },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,7 +101,17 @@ const RegisterForm = () => {
       };
       const response = await axiosInstance.post('register-frm', formattedData);
       if (response.status === 200) {
-        reset();
+        reset({
+          nome: '',
+          cnpj: '',
+          tel1: '',
+          tel2: '',
+          email: '',
+          repeticao: 0,
+          dt_processo: '',
+          nr_valor: '',
+          nr_processo: 0, // Certifique-se de definir o valor padrão como 0 ou vazio
+        });
       } else {
         console.error('Erro ao enviar os dados: resposta inesperada', response);
       }
@@ -118,10 +130,12 @@ const RegisterForm = () => {
     setIsModalOpen(false);
   };
 
+  const repeticaoValue = watch('repeticao');
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen md:mt-[-65px] bg-blue-100 select-none">
+    <div className="flex flex-col items-center justify-center min-h-screen md:mt-[-25px] bg-blue-100 select-none">
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title='Editar Cadastro'>
-        
+        {/* Conteúdo do Modal */}
       </Modal>
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl w-full bg-white p-4 rounded-lg shadow-md">
@@ -191,7 +205,7 @@ const RegisterForm = () => {
                       field.onChange(formatPhoneNumber(e.target.value));
                     }}
                     value={formatPhoneNumber(field.value)}
-                    placeholder="Digite o telefone"
+                    placeholder="Digite o telefone 1"
                     disabled={isSubmitting}
                     className={`mt-1 block w-full px-3 py-2 border ${errors.tel1 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
@@ -212,7 +226,7 @@ const RegisterForm = () => {
                       field.onChange(formatPhoneNumber(e.target.value));
                     }}
                     value={formatPhoneNumber(field.value)}
-                    placeholder="Digite o telefone"
+                    placeholder="Digite o telefone 2"
                     disabled={isSubmitting}
                     className={`mt-1 block w-full px-3 py-2 border ${errors.tel2 ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
@@ -220,9 +234,6 @@ const RegisterForm = () => {
               />
               {errors.tel2 && <p className="mt-2 text-sm text-red-600">{errors.tel2.message}</p>}
             </div>
-          </div>
-          {/* Coluna 2 */}
-          <div className="space-y-4">
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -240,6 +251,9 @@ const RegisterForm = () => {
               />
               {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
             </div>
+          </div>
+          {/* Coluna 2 */}
+          <div className="space-y-4">
             {/* Repetição */}
             <div>
               <label htmlFor="repeticao" className="block text-sm font-medium text-gray-700">Repetição</label>
@@ -249,8 +263,13 @@ const RegisterForm = () => {
                 render={({ field }) => (
                   <input {...field}
                     type="number"
-                    placeholder="Digite a repetição"
+                    placeholder="Digite o número de repetições"
                     disabled={isSubmitting}
+                    onChange={(e) => {
+                      const value = e.target.valueAsNumber;
+                      setValue('repeticao', value > 0 ? value : 1); // Substitui zero por 1
+                    }}
+                    value={repeticaoValue <= 0 ? '' : repeticaoValue} // Limpa o campo se o valor for zero
                     className={`mt-1 block w-full px-3 py-2 border ${errors.repeticao ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
                 )}
@@ -282,11 +301,11 @@ const RegisterForm = () => {
                 render={({ field }) => (
                   <input {...field}
                     type="text"
-                    value={formatCurrency(field.value)}
-                    onChange={(e) => {
-                      setValue('nr_valor', formatCurrency(e.target.value));
-                    }}
                     placeholder="Digite o valor"
+                    onChange={(e) => {
+                      field.onChange(formatCurrency(e.target.value));
+                    }}
+                    value={formatCurrency(field.value)}
                     disabled={isSubmitting}
                     className={`mt-1 block w-full px-3 py-2 border ${errors.nr_valor ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
@@ -294,13 +313,30 @@ const RegisterForm = () => {
               />
               {errors.nr_valor && <p className="mt-2 text-sm text-red-600">{errors.nr_valor.message}</p>}
             </div>
+            {/* Número do Processo */}
+            <div>
+              <label htmlFor="nr_processo" className="block text-sm font-medium text-gray-700">Número do Processo</label>
+              <Controller
+                name="nr_processo"
+                control={control}
+                render={({ field }) => (
+                  <input {...field}
+                    type="number"
+                    placeholder="Digite o número do processo"
+                    disabled={isSubmitting}
+                    className={`mt-1 block w-full px-3 py-2 border ${errors.nr_processo ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  />
+                )}
+              />
+              {errors.nr_processo && <p className="mt-2 text-sm text-red-600">{errors.nr_processo.message}</p>}
+            </div>
           </div>
         </div>
-        <div className="mt-6 flex justify-end">
+        <div className="flex justify-end mt-6">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className={`px-4 py-2 rounded-md text-white ${isSubmitting ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
           >
             {isSubmitting ? 'Enviando...' : 'Enviar'}
           </button>

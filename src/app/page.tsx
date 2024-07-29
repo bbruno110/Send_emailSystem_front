@@ -35,6 +35,11 @@ const Home: React.FC = () => {
   ];
 
   const fetchData = async () => {
+    if (!areDatesValid(dateFilterStart, dateFilterEnd)) {
+      console.warn('Datas inválidas');
+      return;
+    }
+  
     try {
       const response = await axiosInstance.get('/empresas/list', {
         params: {
@@ -46,12 +51,12 @@ const Home: React.FC = () => {
           statusVencimento: vencimentoFilter
         }
       });
-
+  
       const totalItems = response.data.totalItems;
       const totalPaginas = Math.ceil(totalItems / itemsPerPage);
-
+  
       setTotalPages(totalPaginas);
-
+  
       if (currentPage > totalPaginas) {
         setCurrentPage(totalPaginas);
       }
@@ -59,10 +64,17 @@ const Home: React.FC = () => {
       console.error('Erro ao carregar os dados.', error);
     }
   };
+  
 
+    
   useEffect(() => {
-    fetchData();
-  }, [statusFilter, vencimentoFilter, dateFilterStart, dateFilterEnd, currentPage, itemsPerPage]);
+    console.log({'statusFilter: ':statusFilter, 'vencimentoFilter: ':vencimentoFilter, 'dateFilterStart: ':dateFilterStart, 'dateFilterEnd: ':dateFilterEnd, 'currentPage: ':currentPage, 'itemsPerPage: ':itemsPerPage})
+    if (areDatesValid(dateFilterStart, dateFilterEnd)) {
+      setCurrentPage(1); // Resetar a página para 1 quando os filtros são atualizados
+      fetchData();
+    }
+  }, [statusFilter, vencimentoFilter, dateFilterStart, dateFilterEnd, itemsPerPage]);
+  
 
   useEffect(() => {
     setCurrentPage(1);
@@ -99,14 +111,14 @@ const Home: React.FC = () => {
             type="date"
             value={dateFilterStart}
             onChange={(e) => setDateFilterStart(e.target.value)}
-            className="border p-1 rounded w-full md:w-[200px] text-sm"
+            className="border p-1 rounded w-full md:w-[200px] text-sm select-none"
             style={{ height: '2.5rem', lineHeight: '1.5rem' }}
           />
           <input
             type="date"
             value={dateFilterEnd}
             onChange={(e) => setDateFilterEnd(e.target.value)}
-            className="border p-1 rounded w-full md:w-[200px] text-sm"
+            className="border p-1 rounded w-full md:w-[200px] text-sm select-none"
             style={{ height: '2.5rem', lineHeight: '1.5rem' }}
           />
         </div>
@@ -124,7 +136,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* Paginação */}
-        <div className="flex flex-col md:flex-row md:justify-between items-center mt-4">
+        <div className="flex flex-col md:flex-row md:justify-between items-center mt-4 select-none">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -162,6 +174,11 @@ const Home: React.FC = () => {
 
 function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
+}
+
+function areDatesValid(startDate: string, endDate: string): boolean {
+  // Verifica se as datas não estão vazias e se a data final é maior ou igual à data inicial
+  return startDate !== '' && endDate !== '' && new Date(startDate) <= new Date(endDate);
 }
 
 export default Home;
