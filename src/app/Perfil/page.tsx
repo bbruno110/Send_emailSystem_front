@@ -149,7 +149,7 @@ const Perfil: React.FC = () => {
                 onChange={handleBodyChange}
                 rows={6}
                 className="w-full p-2 border rounded"
-                placeholder="Use macros: @nome@, @cnpj@, @email@, @cadastro@, @tel1@, @tel2@, @status@"
+                placeholder="Use macros: @nome@, @cnpj@, @email@, @dtcadastro@, @tel1@, @tel2@, @status@, @processo@"
                 disabled={isLoading}
             />
 

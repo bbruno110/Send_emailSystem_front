@@ -16,7 +16,8 @@ const options: Option[] = [
   { value: 'Oposição', label: 'Oposição' },
   { value: 'Indeferimento', label: 'Indeferimento' },
   { value: 'Concessão', label: 'Concessão' },
-  { value: 'Nulidade', label: 'Nulidade' }
+  { value: 'Nulidade', label: 'Nulidade' },
+  { value: 'Aguardando exame de mérito', label: 'Aguardando exame de mérito' },
 ];
 
 const ModalStatus: React.FC<ModalStatusProps> = ({ isOpen, onClose, onSave }) => {

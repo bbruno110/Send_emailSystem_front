@@ -50,7 +50,7 @@ const Card: React.FC<CardProps> = ({
 
   // Definir classes de estilo baseadas no estado do vencimento e seleção
   let borderColorClass = 'border-gray-300'; // Cor padrão
-  let backgroundColorClass = 'bg-white'; // Cor padrão do fundo
+  let backgroundColorClass = 'bg-green-50'; // Cor padrão do fundo
 
   if (isOverdue) {
     borderColorClass = 'border-red-500'; // Card vencido

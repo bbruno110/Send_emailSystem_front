@@ -78,7 +78,7 @@ const Combobox: React.FC<ComboboxProps> = ({
               key={option.value}
               onClick={() => handleSelect(option.value)}
               className="block w-full text-left px-4 py-1 hover:bg-gray-200"
-              style={{ height: '2.5rem' }}
+              style={{ height: '2.5rem', marginBottom: '0.8rem' }}
             >
               {option.label}
             </button>

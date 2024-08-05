@@ -19,6 +19,7 @@ const Home: React.FC = () => {
     { value: 'Indeferimento', label: 'Indeferimento' },
     { value: 'Concessão', label: 'Concessão' },
     { value: 'Nulidade', label: 'Nulidade' },
+    { value: 'Aguardando exame de mérito', label: 'Aguardando exame de mérito' },
   ];
 
   const vencimentoOptions = [
@@ -32,6 +33,8 @@ const Home: React.FC = () => {
     { value: '10', label: '10 itens por página' },
     { value: '50', label: '50 itens por página' },
     { value: '100', label: '100 itens por página' },
+    { value: '300', label: '300 itens por página' },
+    { value: '9999999', label: 'Todos' },
   ];
 
   const fetchData = async () => {

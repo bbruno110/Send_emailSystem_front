@@ -17,7 +17,7 @@ const links = [
     icon: <BsFillPeopleFill size={26}/>,
     submenu: [
       { id: 5, name: "Cadastro CNPJ", link: "/Cadastro" },
-      { id: 6, name: "Cadastro Perfil", link: "/Perfil" },
+      { id: 6, name: "Cadastro de Mensagem", link: "/Perfil" },
     ],
   },
   { id: 3, name: "Histórico", link: "/Historico", icon: <FaHistory size={26} /> },
@@ -99,7 +99,7 @@ const Menu = () => {
                       <div className="hidden absolute left-0 top-full w-48 bg-gray-800 rounded-md shadow-lg group-hover:block">
                         {link.submenu.map((subLink) => (
                           <Link key={subLink.id} href={subLink.link}>
-                            <span className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer">
+                            <span className="block px-4 py-2 text-sm text-gray-300 hover:text-white mb-2 mt-2 hover:bg-gray-700 cursor-pointer">
                               {subLink.name}
                             </span>
                           </Link>
