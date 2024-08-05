@@ -73,7 +73,7 @@ const Menu = () => {
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
-                <Image src={Logo} alt="Logo" className=" object-fill h-16 w-16" />
+                <Image src={Logo} alt="Logo" className=" object-fill h-14 w-14" />
               </Link>
             </div>
             <div className="hidden sm:flex sm:ml-6">

@@ -135,9 +135,6 @@ const Card: React.FC<CardProps> = ({
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  console.log('Original Date String:', dateString);
-  console.log('Formatted Date:', date.toLocaleDateString('pt-BR'));
-
   const day = String(date.getUTCDate()).padStart(2, '0');
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const year = date.getUTCFullYear();

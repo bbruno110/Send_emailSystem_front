@@ -26,10 +26,9 @@ export default function RootLayout({
           <div className="z-[100]">
             <Menu />
           </div>
-          <main className="flex-grow pt-16"> {/* Ajuste o padding-top aqui */}
+          <main className="flex-grow pt-16">
             {children}
           </main>
-          <footer className="bg-transparent">teste</footer>
         </div>
         
       </body>

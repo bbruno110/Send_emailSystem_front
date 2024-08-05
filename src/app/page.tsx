@@ -68,7 +68,6 @@ const Home: React.FC = () => {
 
     
   useEffect(() => {
-    console.log({'statusFilter: ':statusFilter, 'vencimentoFilter: ':vencimentoFilter, 'dateFilterStart: ':dateFilterStart, 'dateFilterEnd: ':dateFilterEnd, 'currentPage: ':currentPage, 'itemsPerPage: ':itemsPerPage})
     if (areDatesValid(dateFilterStart, dateFilterEnd)) {
       setCurrentPage(1); // Resetar a página para 1 quando os filtros são atualizados
       fetchData();

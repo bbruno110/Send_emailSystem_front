@@ -111,9 +111,6 @@ const Cards: React.FC<CardsProps> = ({
       alert('Nenhum e-mail selecionado.');
       return;
     }
-
-    console.log('Emails selecionados:', emails);
-
     sessionStorage.setItem('selectedEmails', JSON.stringify(emails));
     router.push(`/Email`);
   };
