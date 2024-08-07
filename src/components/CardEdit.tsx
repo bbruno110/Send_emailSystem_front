@@ -1,30 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone, HiOutlineDocument } from 'react-icons/hi'; // Adiciona o ícone HiOutlineDocument
+import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone, HiOutlineDocument } from 'react-icons/hi';
 import axiosInstance from '@/instance/axiosInstance';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useForm, Controller } from 'react-hook-form';
-import { formatCnpj, formatPhoneNumber, formatCurrency, parseCurrency } from '@/helpers/format';
+import { useForm } from 'react-hook-form';
+import { formatCnpj, parseCurrency, formatCpf } from '@/helpers/format';
 
 interface CardEditProps {
   searchTerm: string;
 }
 
-// Atualizando o schema de validação
+const formatPhoneNumber = (value: string): string => {
+  const numericValue = value.replace(/\D/g, '');
+  const formattedValue = numericValue
+    .replace(/^(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+  return formattedValue.slice(0, 15);
+};
+
 const schema = yup.object().shape({
   nome: yup.string().required('Nome é obrigatório'),
-  cnpj: yup.string().matches(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido').required('CNPJ é obrigatório'),
-  tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
+  documento: yup.string()
+    .required('Documento é obrigatório')
+    .test('documento', 'Documento inválido', (value) => {
+      if (value) {
+        const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+        const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
+        return cpfPattern.test(value) || cnpjPattern.test(value);
+      }
+      return false;
+    }),
+  tel1: yup.string().matches(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres').required('Telefone é obrigatório'),
+  tel2: yup.string().matches(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido').max(15, 'Telefone deve ter no máximo 15 caracteres'),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
   repeticao: yup.number().integer('Repetição deve ser um número inteiro').required('Repetição é obrigatória'),
-  nr_valor: yup.number().positive('Valor deve ser positivo').nullable(),
-  dt_processo: yup.date().nullable()
+  dt_processo: yup.date().required('Data do processo é obrigatória'),
+  nr_processo: yup.number().typeError('Número do processo deve ser um número').required('Número do processo é obrigatório'),
+  nr_valor: yup.string().required('Valor é obrigatório'),
 });
 
 type Card = {
   id: number;
   nome: string;
-  cnpj: string;
+  cnpj?: string;
+  cpf?: string;
   email: string;
   telefone1: string;
   telefone2: string;
@@ -43,6 +62,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
     id: 0,
     nome: '',
     cnpj: '',
+    cpf: '',
     email: '',
     telefone1: '',
     telefone2: '',
@@ -53,8 +73,9 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
     nr_processo: undefined,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [tipoDocumento, setTipoDocumento] = useState<'CPF' | 'CNPJ'>('CNPJ');
 
-  const { control, handleSubmit, setValue, formState: { errors } } = useForm<Card>({
+  const { handleSubmit, setValue, formState: { errors } } = useForm<Card>({
     resolver: yupResolver(schema) as any,
   });
 
@@ -64,13 +85,14 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
         const formattedCards = response.data.map((card: any) => ({
           id: card.id,
           nome: card.ds_nome,
-          cnpj: formatCnpj(card.cd_cnpj),
+          cnpj: card.cd_cnpj ? formatCnpj(card.cd_cnpj) : undefined,
+          cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
           email: card.ds_email,
           telefone1: formatPhoneNumber(card.nr_telefone_1),
           telefone2: formatPhoneNumber(card.nr_telefone_2),
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
-          nr_valor: card.nr_valor,
+          nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
           dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
           nr_processo: card.nr_processo,
         }));
@@ -86,7 +108,8 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
       setFilteredData(
         cards.filter((item) =>
           item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.cnpj.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (item.cnpj && item.cnpj.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.cpf && item.cpf.toLowerCase().includes(searchTerm.toLowerCase())) ||
           item.email.toLowerCase().includes(searchTerm.toLowerCase())
         )
       );
@@ -97,21 +120,24 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
 
   const handleEdit = (card: Card) => {
     setSelectedCardId(card.id);
+    setTipoDocumento(card.cnpj ? 'CNPJ' : 'CPF');
     setFormData({
       ...card,
-      cnpj: formatCnpj(card.cnpj),
+      cnpj: card.cnpj ? formatCnpj(card.cnpj) : '',
+      cpf: card.cpf ? formatCpf(card.cpf) : '',
       telefone1: formatPhoneNumber(card.telefone1),
       telefone2: formatPhoneNumber(card.telefone2),
-      nr_valor: card.nr_valor ?? 0, // Definindo valor padrão para formatação
+      nr_valor: card.nr_valor ?? 0,
     });
   };
 
   const handleSave = async () => {
-    setIsLoading(true); // Inicia o carregamento
+    setIsLoading(true);
     try {
       await axiosInstance.put(`/edit/${formData.id}`, {
         ds_nome: formData.nome,
-        cd_cnpj: formData.cnpj,
+        cd_cnpj: tipoDocumento === 'CNPJ' ? formData.cnpj : null,
+        nr_cpf: tipoDocumento === 'CPF' ? formData.cpf : null,
         nr_telefone_1: formData.telefone1,
         nr_telefone_2: formData.telefone2,
         ds_email: formData.email,
@@ -119,7 +145,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
         ie_situacao: formData.situacao,
         nr_valor: formData.nr_valor,
         dt_processo: formData.dt_processo,
-        nr_processo: formData.nr_processo
+        nr_processo: formData.nr_processo,
       });
 
       setCards(prevCards =>
@@ -137,22 +163,23 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
         const formattedCards = response.data.map((card: any) => ({
           id: card.id,
           nome: card.ds_nome,
-          cnpj: formatCnpj(card.cd_cnpj),
+          cnpj: card.cd_cnpj ? formatCnpj(card.cd_cnpj) : undefined,
+          cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
           email: card.ds_email,
           telefone1: formatPhoneNumber(card.nr_telefone_1),
           telefone2: formatPhoneNumber(card.nr_telefone_2),
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
-          nr_valor: card.nr_valor,
+          nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
           dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
-          nr_processo: card.nr_processo
+          nr_processo: card.nr_processo,
         }));
         setCards(formattedCards);
       })
       .catch(error => {
         console.error('Erro ao buscar dados:', error);
       });
-      setIsLoading(false); // Finaliza o carregamento
+      setIsLoading(false);
     }
   };
 
@@ -160,12 +187,39 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
     setSelectedCardId(null);
   };
 
-  // Função para formatar o valor em tempo real
   const handleValueChange = (value: string) => {
     const numericValue = parseCurrency(value);
     setFormData({
       ...formData,
       nr_valor: isNaN(numericValue) ? undefined : numericValue
+    });
+  };
+
+  const handleDocumentoChange = (value: string) => {
+    if (tipoDocumento === 'CNPJ') {
+      setFormData({
+        ...formData,
+        cnpj: formatCnpj(value),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        cpf: formatCpf(value),
+      });
+    }
+  };
+
+  const handleTelefone1Change = (value: string) => {
+    setFormData({
+      ...formData,
+      telefone1: formatPhoneNumber(value),
+    });
+  };
+
+  const handleTelefone2Change = (value: string) => {
+    setFormData({
+      ...formData,
+      telefone2: formatPhoneNumber(value),
     });
   };
 
@@ -184,35 +238,50 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                   className="flex-grow border rounded-md p-2"
                   disabled={isLoading}
                 />
-                <HiOutlineDocument className="text-gray-500 ml-2" /> {/* Ícone para número do processo */}
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlineDocument className="text-gray-500" />
+                <select
+                  value={tipoDocumento}
+                  onChange={(e) => setTipoDocumento(e.target.value as 'CPF' | 'CNPJ')}
+                  className="border rounded-md p-2"
+                  disabled={isLoading}
+                >
+                  <option value="CPF">CPF</option>
+                  <option value="CNPJ">CNPJ</option>
+                </select>
                 <input
-                  type="number"
-                  value={formData.nr_processo}
-                  onChange={(e) =>  setFormData({ ...formData, nr_processo: Number(e.target.value) })}
-                  className="border rounded-md p-2 ml-2"
+                  type="text"
+                  value={tipoDocumento === 'CNPJ' ? formData.cnpj : formData.cpf}
+                  onChange={(e) => handleDocumentoChange(e.target.value)}
+                  className="flex-grow border rounded-md p-2"
                   disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlineIdentification className="text-gray-500" />
-                <Controller
-                  name="cnpj"
-                  control={control}
-                  render={({ field }) => (
-                    <input {...field}
-                      type="text"
-                      value={formData.cnpj}
-                      onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                      className="flex-grow border rounded-md p-2"
-                      disabled={isLoading}
-                    />
-                  )}
+                <HiOutlinePhone className="text-gray-500" />
+                <input
+                  type="text"
+                  value={formData.telefone1}
+                  onChange={(e) => handleTelefone1Change(e.target.value)}
+                  className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlinePhone className="text-gray-500" />
+                <input
+                  type="text"
+                  value={formData.telefone2}
+                  onChange={(e) => handleTelefone2Change(e.target.value)}
+                  className="flex-grow border rounded-md p-2"
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
                 <input
-                  type="text"
+                  type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="flex-grow border rounded-md p-2"
@@ -220,134 +289,70 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlinePhone className="text-gray-500" />
-                <Controller
-                  name="telefone1"
-                  control={control}
-                  render={({ field }) => (
-                    <input {...field}
-                      type="text"
-                      value={formData.telefone1}
-                      onChange={(e) => setFormData({ ...formData, telefone1: e.target.value })}
-                      className="flex-grow border rounded-md p-2"
-                      disabled={isLoading}
-                    />
-                  )}
+                <HiOutlineDocument className="text-gray-500" />
+                <input
+                  type="number"
+                  value={formData.repeticao}
+                  onChange={(e) => setFormData({ ...formData, repeticao: Number(e.target.value) })}
+                  className="border rounded-md p-2"
+                  disabled={isLoading}
+                />
+                <input
+                  type="text"
+                  value={formData.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
+                  onChange={(e) => handleValueChange(e.target.value)}
+                  className="border rounded-md p-2"
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlinePhone className="text-gray-500" />
-                <Controller
-                  name="telefone2"
-                  control={control}
-                  render={({ field }) => (
-                    <input {...field}
-                      type="text"
-                      value={formData.telefone2}
-                      onChange={(e) => setFormData({ ...formData, telefone2: e.target.value })}
-                      className="flex-grow border rounded-md p-2"
-                      disabled={isLoading}
-                    />
-                  )}
+                <label>Data do Processo</label>
+                <input
+                  type="date"
+                  value={formData.dt_processo ? formData.dt_processo.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setFormData({ ...formData, dt_processo: e.target.value ? new Date(e.target.value) : undefined })}
+                  className="border rounded-md p-2"
+                  disabled={isLoading}
                 />
               </div>
-              {/* Campos ocultos */}
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.situacao === 'A'}
-                    onChange={() => setFormData({ ...formData, situacao: formData.situacao === 'A' ? 'I' : 'A' })}
-                    className="form-checkbox"
-                    disabled={isLoading}
-                  />
-                  <span>Ativo</span>
-                </label>
-              </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
-                  <span>Repetição:</span>
-                  <input
-                    type="number"
-                    value={formData.repeticao}
-                    onChange={(e) => setFormData({ ...formData, repeticao: Number(e.target.value) })}
-                    className="border rounded-md p-2"
-                    disabled={isLoading}
-                  />
-                </label>
-              </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
-                  <span>Valor:</span>
-                  <input
-                    type="text"
-                    value={formData.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
-                    onChange={(e) => handleValueChange(e.target.value)}
-                    className="border rounded-md p-2"
-                    disabled={isLoading}
-                  />
-                </label>
-              </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <label className="flex items-center space-x-2">
-                  <span>Data do Processo:</span>
-                  <input
-                    type="date"
-                    value={formData.dt_processo ? formData.dt_processo.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setFormData({ ...formData, dt_processo: e.target.value ? new Date(e.target.value) : undefined })}
-                    className="border rounded-md p-2"
-                    disabled={isLoading}
-                  />
-                </label>
-              </div>
-              <div className="flex space-x-4 mt-4">
-                <button
-                  onClick={handleSave}
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Salvando...' : 'Salvar'}
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
-                  disabled={isLoading}
-                >
-                  Cancelar
-                </button>
+              <div className="flex justify-end space-x-2">
+                <button onClick={handleCancel} className="bg-gray-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Cancelar</button>
+                <button onClick={handleSave} className="bg-blue-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Salvar</button>
               </div>
             </>
           ) : (
-            <div className="flex flex-col space-y-2">
+            <>
               <div className="flex items-center space-x-2">
                 <HiOutlineIdentification className="text-gray-500" />
-                <span>{card.nome}</span>
-                <HiOutlineDocument className="text-gray-500 ml-2" /> {/* Ícone para número do processo */}
-                <span>{card.nr_processo}</span>
+                <p className="flex-grow">{card.nome}</p>
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlineIdentification className="text-gray-500" />
-                <span>{card.cnpj}</span>
+                <HiOutlineDocument className="text-gray-500" />
+                <p className="flex-grow">{card.cnpj || card.cpf}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlinePhone className="text-gray-500" />
+                <p className="flex-grow">{card.telefone1}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <HiOutlinePhone className="text-gray-500" />
+                <p className="flex-grow">{card.telefone2}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
-                <span>{card.email}</span>
+                <p className="flex-grow">{card.email}</p>
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlinePhone className="text-gray-500" />
-                <span>{card.telefone1}</span>
+                <HiOutlineDocument className="text-gray-500" />
+                <p className="flex-grow">{card.repeticao}</p>
+                <p className="flex-grow">{card.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}</p>
               </div>
               <div className="flex items-center space-x-2">
-                <HiOutlinePhone className="text-gray-500" />
-                <span>{card.telefone2}</span>
+                <label>Data do Processo</label>
+                <p className="flex-grow">{card.dt_processo ? card.dt_processo.toISOString().split('T')[0] : ''}</p>
               </div>
-              <button
-                onClick={() => handleEdit(card)}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                Editar
-              </button>
-            </div>
+              <button onClick={() => handleEdit(card)} className="bg-blue-500 text-white rounded-md px-4 py-2 self-end">Editar</button>
+            </>
           )}
         </div>
       ))}

@@ -2,7 +2,7 @@ import React from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
 import { HiDevicePhoneMobile } from 'react-icons/hi2';
 import { FiCalendar, FiAlertCircle, FiDollarSign, FiClock, FiCheckCircle, FiXCircle, FiRefreshCcw, FiFileText } from 'react-icons/fi'; // Importa o novo ícone
-import { formatCnpj, formatPhoneNumber } from '@/helpers/format';
+import { formatCnpj, formatCurrency, formatPhoneNumber } from '@/helpers/format';
 
 interface CardProps {
   id: number;
@@ -78,7 +78,7 @@ const Card: React.FC<CardProps> = ({
     >
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-600 mr-2" />
-        <h2 className="text-lg font-bold">{displayValue(nome)}</h2>
+        <h2 className="text-lg font-bold truncate">{displayValue(nome)}</h2>
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-400 mr-2" />
@@ -86,7 +86,7 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineMail className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Email: {displayValue(email)}</p>
+        <p className="text-sm text-gray-600 truncate w-full">Email: {displayValue(email)}</p>
       </div>
       {telefone1 && (
         <div className="flex items-center mb-2">
@@ -114,20 +114,19 @@ const Card: React.FC<CardProps> = ({
         <FiClock className="text-gray-400 mr-2" />
         <p className="text-sm text-gray-600">Data de Processo: {formatDate(displayValue(dt_processo))}</p>
       </div>
-      
       { nr_processo && 
-      <div className="flex items-center mb-2 ">
-        {statusIcons[ie_status] || <FiFileText className="text-gray-400" title="Status desconhecido" />}
-        <p className="text-sm ml-2 text-gray-600">N° Processo: {displayValue(nr_processo)}</p>
-      </div>
+        <div className="flex items-center mb-2 ">
+          {statusIcons[ie_status] || <FiFileText className="text-gray-400" title="Status desconhecido" />}
+          <p className="text-sm ml-2 text-gray-600 truncate w-full">N° Processo: {displayValue(nr_processo)}</p>
+        </div>
       }
       <div className="flex items-center mb-2">
         <FiDollarSign className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Valor: R$ {displayValue(nr_valor)}</p>
+        <p className="text-sm text-gray-600">Valor: R$ {displayValue(formatCurrency(nr_valor))}</p>
       </div>
       <div className="flex items-center mt-2">
         {statusIcons[ie_status] || <FiAlertCircle className="text-gray-400" title="Status desconhecido" />}
-        <p className="text-sm ml-2 text-gray-600">Situação: {ie_status}</p>
+        <p className="text-sm ml-2 text-gray-600 truncate w-full">Situação: {ie_status}</p>
       </div>
     </div>
   );
