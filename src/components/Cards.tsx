@@ -29,7 +29,7 @@ const Cards: React.FC<CardsProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Referência para o menu de contexto
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
@@ -130,7 +130,7 @@ const Cards: React.FC<CardsProps> = ({
         ids: selectedCards,
         ie_status: status
       });
-  
+
       // Atualiza os dados dos cartões após a alteração
       const response = await axiosInstance.get('/empresas/list', {
         params: {
@@ -143,7 +143,7 @@ const Cards: React.FC<CardsProps> = ({
         }
       });
       setCardsData(response.data.empresas);
-  
+
       // Limpa a seleção e fecha o modal
       clearSelection();
     } catch (error) {
@@ -170,7 +170,7 @@ const Cards: React.FC<CardsProps> = ({
     <div className="relative">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 select-none">
         {sortedData.length > 0 ? (
-          sortedData.map(({ id, ds_nome, cd_cnpj, ds_email, nr_telefone_1, nr_telefone_2, dt_vencimento, dt_processo, nr_valor, ie_status, nr_processo }) => (
+          sortedData.map(({ id, ds_nome, cd_cnpj, nr_cpf, ds_email, nr_telefone_1, nr_telefone_2, dt_vencimento, dt_processo, nr_valor, ie_status, nr_processo }) => (
             <div
               key={id}
               className={`card-container${selectedCards.includes(id) ? 'bg-gray-200 mt-[2px] mb-[2px] ' : ''}`}
@@ -179,7 +179,7 @@ const Cards: React.FC<CardsProps> = ({
               <Card
                 id={id}
                 nome={ds_nome}
-                cnpj={cd_cnpj}
+                documento={cd_cnpj || nr_cpf} // Ajusta o campo de documento
                 email={ds_email}
                 telefone1={nr_telefone_1}
                 telefone2={nr_telefone_2}

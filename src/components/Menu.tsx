@@ -16,7 +16,7 @@ const links = [
     link: "#",
     icon: <BsFillPeopleFill size={26}/>,
     submenu: [
-      { id: 5, name: "Cadastro CNPJ", link: "/Cadastro" },
+      { id: 5, name: "Cadastro de Empresa", link: "/Cadastro" },
       { id: 6, name: "Cadastro de Mensagem", link: "/Perfil" },
     ],
   },

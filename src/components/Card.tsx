@@ -1,13 +1,14 @@
 import React from 'react';
 import { HiOutlineIdentification, HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
 import { HiDevicePhoneMobile } from 'react-icons/hi2';
-import { FiCalendar, FiAlertCircle, FiDollarSign, FiClock, FiCheckCircle, FiXCircle, FiRefreshCcw, FiFileText } from 'react-icons/fi'; // Importa o novo ícone
-import { formatCnpj, formatCurrency, formatPhoneNumber } from '@/helpers/format';
+import { FiCalendar, FiAlertCircle, FiDollarSign, FiClock, FiCheckCircle, FiXCircle, FiRefreshCcw, FiFileText } from 'react-icons/fi';
+import { formatCnpj, formatCpf, formatCurrency, formatPhoneNumber } from '@/helpers/format'; // Adicione formatCpf se necessário
+import { format } from 'date-fns';
 
 interface CardProps {
   id: number;
   nome: string;
-  cnpj: string;
+  documento: string; // Campo genérico para CPF ou CNPJ
   email: string;
   telefone1?: string;
   telefone2?: string;
@@ -32,49 +33,49 @@ const statusIcons: { [key: string]: React.ReactNode } = {
 const Card: React.FC<CardProps> = ({
   id,
   nome,
-  cnpj,
+  documento,
   email,
   telefone1,
   telefone2,
   dt_vencimento,
   dt_processo,
   nr_valor,
-  ie_status,
   nr_processo,
   selected,
+  ie_status,
   onClick,
   onContextMenu,
 }) => {
   const isDueSoon = isDateDueSoon(dt_vencimento);
   const isOverdue = isDateOverdue(dt_vencimento);
 
-  // Definir classes de estilo baseadas no estado do vencimento e seleção
-  let borderColorClass = 'border-gray-300'; // Cor padrão
-  let backgroundColorClass = 'bg-green-50'; // Cor padrão do fundo
+  const borderColorClass = isOverdue
+    ? 'border-red-500'
+    : isDueSoon
+    ? 'border-yellow-500'
+    : 'border-gray-300'; 
 
-  if (isOverdue) {
-    borderColorClass = 'border-red-500'; // Card vencido
-    backgroundColorClass = 'bg-red-50'; // Fundo para vencido
-  } else if (isDueSoon) {
-    borderColorClass = 'border-yellow-500'; // Card próximo a vencer
-    backgroundColorClass = 'bg-yellow-50'; // Fundo para próximo a vencer
-  }
+  const backgroundColorClass = isOverdue
+    ? 'bg-red-50'
+    : isDueSoon
+    ? 'bg-yellow-50'
+    : 'bg-green-50';
 
-  // Aplica cor mais escura e sombra quando o card está selecionado
   const selectedBackgroundClass = selected
-    ? 'bg-gray-200 border-blue-500 shadow-md' // Cor de fundo mais escura e borda azul
+    ? 'bg-gray-200 border-blue-500 shadow-md'
     : backgroundColorClass;
 
-  // Função para exibir "Não informado" quando o valor é null ou undefined
-  const displayValue = (value: string | undefined | null): string => {
-    return value ?? 'Não informado';
-  };
+  const displayValue = (value: string | undefined | null): string => value ?? 'Não informado';
+
+  // Formata o documento dependendo se é CPF ou CNPJ
+  const formattedDocumento = formatDocument(documento);
 
   return (
     <div
-      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg h-full flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''}`}
+      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''} max-w-full w-[350px] sm:w-full  md:w-auto`}
       onClick={onClick}
       onContextMenu={onContextMenu}
+      aria-label={`Card de ${nome}`}
     >
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-600 mr-2" />
@@ -82,27 +83,27 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">CNPJ: {formatCnpj(displayValue(cnpj))}</p>
+        <p className="text-sm text-gray-600 truncate">Doc: {formattedDocumento}</p>
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineMail className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600 truncate w-full">Email: {displayValue(email)}</p>
+        <p className="text-sm text-gray-600 truncate">Email: {displayValue(email)}</p>
       </div>
       {telefone1 && (
         <div className="flex items-center mb-2">
           <HiOutlinePhone className="text-gray-400 mr-2" />
-          <p className="text-sm text-gray-600">Telefone 1: {formatPhoneNumber(displayValue(telefone1))}</p>
+          <p className="text-sm text-gray-600 truncate">Telefone 1: {formatPhoneNumber(displayValue(telefone1))}</p>
         </div>
       )}
       {telefone2 && (
         <div className="flex items-center mb-2">
           <HiDevicePhoneMobile className="text-gray-400 mr-2" />
-          <p className="text-sm text-gray-600">Telefone 2: {formatPhoneNumber(displayValue(telefone2))}</p>
+          <p className="text-sm text-gray-600 truncate">Telefone 2: {formatPhoneNumber(displayValue(telefone2))}</p>
         </div>
       )}
       <div className={`flex items-center mb-2 ${isDueSoon ? 'text-yellow-800' : ''} ${isOverdue ? 'text-red-800' : ''}`}>
         <FiCalendar className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Data de Vencimento: {formatDate(displayValue(dt_vencimento))}</p>
+        <p className="text-sm text-gray-600 truncate">Vencimento: {formatDate(displayValue(dt_vencimento))}</p>
         {isDueSoon && (
           <FiAlertCircle className="ml-2 text-yellow-500" title="Próximo a vencer" />
         )}
@@ -112,21 +113,21 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex items-center mb-2">
         <FiClock className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Data de Processo: {formatDate(displayValue(dt_processo))}</p>
+        <p className="text-sm text-gray-600 truncate">Data de Processo: {formatDate(displayValue(dt_processo))}</p>
       </div>
-      { nr_processo && 
-        <div className="flex items-center mb-2 ">
+      {nr_processo && (
+        <div className="flex items-center mb-2">
           {statusIcons[ie_status] || <FiFileText className="text-gray-400" title="Status desconhecido" />}
-          <p className="text-sm ml-2 text-gray-600 truncate w-full">N° Processo: {displayValue(nr_processo)}</p>
+          <p className="text-sm ml-2 text-gray-600 truncate">N° Processo: {displayValue(nr_processo)}</p>
         </div>
-      }
+      )}
       <div className="flex items-center mb-2">
         <FiDollarSign className="text-gray-400 mr-2" />
-        <p className="text-sm text-gray-600">Valor: R$ {displayValue(formatCurrency(nr_valor))}</p>
+        <p className="text-sm text-gray-600 truncate">Valor: R$ {displayValue(formatCurrency(nr_valor))}</p>
       </div>
       <div className="flex items-center mt-2">
         {statusIcons[ie_status] || <FiAlertCircle className="text-gray-400" title="Status desconhecido" />}
-        <p className="text-sm ml-2 text-gray-600 truncate w-full">Situação: {ie_status}</p>
+        <p className="text-sm ml-2 text-gray-600 truncate">Situação: {ie_status}</p>
       </div>
     </div>
   );
@@ -134,11 +135,7 @@ const Card: React.FC<CardProps> = ({
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const year = date.getUTCFullYear();
-
-  return `${day}/${month}/${year}`;
+  return format(date, 'dd/MM/yyyy');
 }
 
 function isDateDueSoon(dt_vencimento: string): boolean {
@@ -155,6 +152,16 @@ function isDateOverdue(dt_vencimento: string): boolean {
   const currentDate = new Date();
 
   return dueDate < currentDate;
+}
+
+function formatDocument(documento: string): string {
+  if (documento.length === 14) {
+    return formatCnpj(documento);
+  } else if (documento.length === 11) { 
+    return formatCpf(documento);
+  } else {
+    return documento;
+  }
 }
 
 export default Card;
