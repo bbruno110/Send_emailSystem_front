@@ -72,7 +72,7 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''} max-w-full w-[350px] sm:w-full  md:w-auto`}
+      className={`card-container border ${borderColorClass} ${selectedBackgroundClass} rounded-lg flex flex-col p-4 mb-4 cursor-pointer transition-transform transform ${selected ? 'scale-105' : ''} max-w-full w-[350px] sm:w-full md:w-auto`}
       onClick={onClick}
       onContextMenu={onContextMenu}
       aria-label={`Card de ${nome}`}
