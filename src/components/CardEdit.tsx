@@ -10,12 +10,17 @@ interface CardEditProps {
   searchTerm: string;
 }
 
-const formatPhoneNumber = (value: string): string => {
-  const numericValue = value.replace(/\D/g, '');
+const formatPhoneNumber = (value?: string): string => {
+  if (!value) return ''; // Retorna uma string vazia se o valor for undefined, null ou vazio
+
+  const numericValue = value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+
+  // Aplica a formatação no número
   const formattedValue = numericValue
     .replace(/^(\d{2})(\d)/, '($1) $2')
     .replace(/(\d{5})(\d)/, '$1-$2');
-  return formattedValue.slice(0, 15);
+
+  return formattedValue.slice(0, 15); // Retorna o valor formatado, limitando a 15 caracteres
 };
 
 const schema = yup.object().shape({
@@ -89,7 +94,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
           cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
           email: card.ds_email,
           telefone1: formatPhoneNumber(card.nr_telefone_1),
-          telefone2: formatPhoneNumber(card.nr_telefone_2),
+          telefone2: card.nr_telefone_2 ? formatPhoneNumber(card.nr_telefone_2) : undefined,
           situacao: card.ie_situacao,
           repeticao: card.nr_repeticao,
           nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
@@ -133,13 +138,53 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
 
   const handleSave = async () => {
     setIsLoading(true);
+  
+    // Função para remover caracteres não numéricos
+    const removeNonNumeric = (value: string) => value.replace(/\D/g, '');
+  
+    // Verifica se o campo de documento está preenchido
+    if ((tipoDocumento === 'CNPJ' && !formData.cnpj) || (tipoDocumento === 'CPF' && !formData.cpf)) {
+      alert(`O campo ${tipoDocumento} deve ser preenchido completamente.`);
+      setIsLoading(false);
+      return;
+    }
+  
+    // Verifica se o campo de telefone 1 está preenchido
+    if (!formData.telefone1) {
+      alert('O campo Telefone 1 deve ser preenchido.');
+      setIsLoading(false);
+      return;
+    }
+  
+    // Verifica se o campo de telefone 2, se preenchido, está completo
+    const telefone2Numerico = removeNonNumeric(formData.telefone2 ?? ''); // Usa '' como padrão
+    if (formData.telefone2 && telefone2Numerico.length < 10) { // Supondo que o comprimento mínimo seja 10 dígitos
+      alert('O campo Telefone 2 deve estar completo se preenchido.');
+      setIsLoading(false);
+      return;
+    }
+  
+    // Verifica se o campo de email está preenchido
+    if (!formData.email) {
+      alert('O campo Email deve ser preenchido.');
+      setIsLoading(false);
+      return;
+    }
+  
+    // Verifica se o campo de valor está preenchido
+    if (!formData.nr_valor) {
+      alert('O campo Valor deve ser preenchido.');
+      setIsLoading(false);
+      return;
+    }
+  
     try {
       await axiosInstance.put(`/edit/${formData.id}`, {
         ds_nome: formData.nome,
-        cd_cnpj: tipoDocumento === 'CNPJ' ? formData.cnpj : null,
-        nr_cpf: tipoDocumento === 'CPF' ? formData.cpf : null,
-        nr_telefone_1: formData.telefone1,
-        nr_telefone_2: formData.telefone2,
+        cd_cnpj: tipoDocumento === 'CNPJ' ? removeNonNumeric(formData.cnpj ?? '') : null,
+        nr_cpf: tipoDocumento === 'CPF' ? removeNonNumeric(formData.cpf ?? '') : null,
+        nr_telefone_1: removeNonNumeric(formData.telefone1),
+        nr_telefone_2: removeNonNumeric(formData.telefone2),
         ds_email: formData.email,
         nr_repeticao: formData.repeticao,
         ie_situacao: formData.situacao,
@@ -147,7 +192,6 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
         dt_processo: formData.dt_processo,
         nr_processo: formData.nr_processo,
       });
-
       setCards(prevCards =>
         prevCards.map(card =>
           card.id === formData.id ? { ...formData } : card
@@ -159,30 +203,34 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
       alert('Erro ao realizar a atualização do cadastro.');
     } finally {
       axiosInstance.get('/list')
-      .then(response => {
-        const formattedCards = response.data.map((card: any) => ({
-          id: card.id,
-          nome: card.ds_nome,
-          cnpj: card.cd_cnpj ? formatCnpj(card.cd_cnpj) : undefined,
-          cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
-          email: card.ds_email,
-          telefone1: formatPhoneNumber(card.nr_telefone_1),
-          telefone2: formatPhoneNumber(card.nr_telefone_2),
-          situacao: card.ie_situacao,
-          repeticao: card.nr_repeticao,
-          nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
-          dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
-          nr_processo: card.nr_processo,
-        }));
-        setCards(formattedCards);
-      })
-      .catch(error => {
-        console.error('Erro ao buscar dados:', error);
-      });
+        .then(response => {
+          const formattedCards = response.data.map((card: any) => ({
+            id: card.id,
+            nome: card.ds_nome,
+            cnpj: card.cd_cnpj ? formatCnpj(card.cd_cnpj) : undefined,
+            cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
+            email: card.ds_email,
+            telefone1: formatPhoneNumber(card.nr_telefone_1),
+            telefone2: card.nr_telefone_2,
+            situacao: card.ie_situacao,
+            repeticao: card.nr_repeticao,
+            nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
+            dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
+            nr_processo: card.nr_processo,
+          }));
+          
+          setCards(formattedCards);
+          
+        })
+        .catch(error => {
+          console.error('Erro ao buscar dados:', error);
+        });
       setIsLoading(false);
     }
   };
-
+  
+  
+  
   const handleCancel = () => {
     setSelectedCardId(null);
   };
@@ -268,6 +316,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                   disabled={isLoading}
                 />
               </div>
+              
               <div className="flex items-center space-x-2">
                 <HiOutlinePhone className="text-gray-500" />
                 <input
@@ -297,13 +346,27 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                   className="border rounded-md p-2"
                   disabled={isLoading}
                 />
-                <input
+              </div>
+              <div className="flex items-center space-x-2">
+              <HiOutlineDocument className="text-gray-500" />
+              <input
                   type="text"
                   value={formData.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
                   onChange={(e) => handleValueChange(e.target.value)}
                   className="border rounded-md p-2"
                   disabled={isLoading}
                 />
+              </div>
+              <div>
+                <label htmlFor="situacao">Situação: </label>
+                <input
+                  id="situacao"
+                  type="checkbox"
+                  checked={formData.situacao === 'A'}
+                  onChange={() => setFormData({ ...formData, situacao: formData.situacao === 'A' ? 'I' : 'A' })}
+                />
+                <label>{formData.situacao === 'A' ? ' Ativo ' : ' Inativo '}</label>
+                {errors.situacao && <span>{errors.situacao.message}</span>}
               </div>
               <div className="flex items-center space-x-2">
                 <label>Data do Processo</label>
@@ -315,6 +378,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                   disabled={isLoading}
                 />
               </div>
+              
               <div className="flex justify-end space-x-2">
                 <button onClick={handleCancel} className="bg-gray-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Cancelar</button>
                 <button onClick={handleSave} className="bg-blue-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Salvar</button>
@@ -334,17 +398,19 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                 <HiOutlinePhone className="text-gray-500" />
                 <p className="flex-grow">{card.telefone1}</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <HiOutlinePhone className="text-gray-500" />
-                <p className="flex-grow">{card.telefone2}</p>
-              </div>
+              {card.telefone2 &&
+                <div className="flex items-center space-x-2">
+                  <HiOutlinePhone className="text-gray-500" />
+                  <p className="flex-grow">{card.telefone2}</p>
+                </div>
+              }
+              
               <div className="flex items-center space-x-2">
                 <HiOutlineMail className="text-gray-500" />
                 <p className="flex-grow">{card.email}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <HiOutlineDocument className="text-gray-500" />
-                <p className="flex-grow">{card.repeticao}</p>
                 <p className="flex-grow">{card.nr_valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}</p>
               </div>
               <div className="flex items-center space-x-2">
