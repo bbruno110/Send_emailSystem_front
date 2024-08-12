@@ -126,6 +126,7 @@ const Email: React.FC = () => {
                     value={emailOptions.filter(email => selectedEmails.includes(email.value))}
                     onChange={handleSelectChange}
                     isMulti
+                    placeholder='Emails a serem enviados'
                     isDisabled={loading} // Desabilita quando carregando
                 />
             </div>
@@ -136,6 +137,7 @@ const Email: React.FC = () => {
                     <input
                         type="text"
                         value={subject}
+                        placeholder='Assunto do email a ser enviado'
                         onChange={handleSubjectChange}
                         className="w-full p-2 border rounded"
                         disabled={loading} // Desabilita quando carregando
@@ -148,18 +150,19 @@ const Email: React.FC = () => {
                         value={selectedProfile}
                         onChange={handleProfileChange}
                         isClearable
+                        placeholder="Mensagens salvas(pré carregadas)"
                         isDisabled={loading} // Desabilita quando carregando
                     />
                 </div>
             </div>
 
-            <label className="block mt-4 mb-2">Corpo do Email:</label>
+            <label className="block mt-4 mb-2">Conteúdo do Email:</label>
             <textarea
                 value={body}
                 onChange={handleBodyChange}
                 rows={6}
                 className="w-full p-2 border rounded"
-                placeholder="Use macros: @nome@, @cnpj@, @email@, @dtcadastro@, @tel1@, @tel2@, @status@, @processo@"
+                placeholder={`Aqui poderá digitar o conteúdo da mensagem de email, que serão lidas pelos destinatários. \nUse macros: @nome@, @cnpj@, @cpf@, @email@, @dtcadastro@, @tel1@, @tel2@, @status@, @processo@`}
                 disabled={loading} // Desabilita quando carregando
             />
 

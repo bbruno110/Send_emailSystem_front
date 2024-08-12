@@ -34,7 +34,7 @@ const Home: React.FC = () => {
     { value: '50', label: '50 itens por página' },
     { value: '100', label: '100 itens por página' },
     { value: '300', label: '300 itens por página' },
-    { value: '9999999', label: 'Todos' },
+    { value: '9999999999999', label: 'Todos' },
   ];
 
   const fetchData = async () => {

@@ -87,6 +87,17 @@
     background: #555;
   }
 
+  .truncate-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-title {
+    font-size: 1.25rem; /* Ajuste o tamanho conforme necessário */
+    font-weight: bold;
+    line-height: 1.2; /* Ajusta a altura da linha para melhorar a legibilidade */
+  }
+
   .invisible-scrollbar {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */

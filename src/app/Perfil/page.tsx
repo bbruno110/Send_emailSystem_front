@@ -123,7 +123,7 @@ const Perfil: React.FC = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Email Composição</h1>
+            <h1 className="text-2xl font-bold mb-4">Composição</h1>
             
             <label className="block mb-2">Perfis:</label>
             <Select
@@ -134,7 +134,7 @@ const Perfil: React.FC = () => {
                 isDisabled={isLoading}
             />
             
-            <label className="block mt-4 mb-2">Título:</label>
+            <label className="block mt-4 mb-2">Assunto:</label>
             <input
                 type="text"
                 value={title}
@@ -143,13 +143,13 @@ const Perfil: React.FC = () => {
                 disabled={isLoading}
             />
 
-            <label className="block mt-4 mb-2">Corpo do Email:</label>
+            <label className="block mt-4 mb-2">Conteúdo do Email:</label>
             <textarea
                 value={body}
                 onChange={handleBodyChange}
                 rows={6}
                 className="w-full p-2 border rounded"
-                placeholder="Use macros: @nome@, @cnpj@, @email@, @dtcadastro@, @tel1@, @tel2@, @status@, @processo@"
+                placeholder={`Aqui poderá digitar o conteúdo da mensagem de email, que serão lidas pelos destinatários, elas ficarão salvas para ser utilizadas mais vezes. \nUse macros: @nome@, @cnpj@, @cpf@, @email@, @dtcadastro@, @tel1@, @tel2@, @status@, @processo@`}
                 disabled={isLoading}
             />
 

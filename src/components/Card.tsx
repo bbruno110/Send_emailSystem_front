@@ -79,7 +79,7 @@ const Card: React.FC<CardProps> = ({
     >
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-600 mr-2" />
-        <h2 className="text-lg font-bold truncate">{displayValue(nome)}</h2>
+        <h2 className="card-title">{displayValue(nome)}</h2>
       </div>
       <div className="flex items-center mb-2">
         <HiOutlineIdentification className="text-gray-400 mr-2" />
