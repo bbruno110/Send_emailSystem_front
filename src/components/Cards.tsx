@@ -101,7 +101,7 @@ const Cards: React.FC<CardsProps> = ({
 
   const getSelectedEmails = (): string[] => {
     return selectedCards
-      .map(cardId => cardsData.find(card => card.id === cardId)?.ds_email)
+      .map(cardId => cardsData.find(card => card.id === cardId)?.id)
       .filter(Boolean) as string[];
   };
 

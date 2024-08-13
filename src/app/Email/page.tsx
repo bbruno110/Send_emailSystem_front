@@ -26,9 +26,9 @@ const Email: React.FC = () => {
         const fetchEmails = async () => {
             try {
                 const response = await axiosInstance.get('/list');
-                const emailData = response.data.map((item: { ds_email: string }) => ({
-                    value: item.ds_email,
-                    label: item.ds_email,
+                const emailData = response.data.map((item: { id: number, ds_nome: string }) => ({
+                    value: item.id,
+                    label: item.ds_nome ,
                 }));
                 setEmailOptions(emailData);
             } catch (error) {
