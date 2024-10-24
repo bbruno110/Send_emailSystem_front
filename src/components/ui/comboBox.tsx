@@ -25,7 +25,7 @@ const Combobox: React.FC<ComboboxProps> = ({
   direction = 'down'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownZIndex, setDropdownZIndex] = useState<number>(20); // Estado para o z-index
+  const [dropdownZIndex, setDropdownZIndex] = useState<number>(80); // Estado para o z-index
   const comboboxRef = useRef<HTMLDivElement | null>(null);
 
   const selectedOption = options.find(option => option.value === value);
@@ -55,7 +55,7 @@ const Combobox: React.FC<ComboboxProps> = ({
     };
   }, [isOpen]);
 
-  const dropdownClasses = `absolute ${direction === 'down' ? 'top-full' : 'bottom-full'} left-0 w-full bg-white border border-gray-300 rounded shadow-lg mt-1 z-${dropdownZIndex}`;
+  const dropdownClasses = `absolute ${direction === 'down' ? 'top-full' : 'bottom-full'} left-0 w-full bg-white border border-gray-300 rounded shadow-lg mt-1 z-${dropdownZIndex} max-h-60 overflow-y-auto`;
 
   const arrowClasses = `ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`;
 

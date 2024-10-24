@@ -17,7 +17,10 @@ const options: Option[] = [
   { value: 'Indeferimento', label: 'Indeferimento' },
   { value: 'Concessão', label: 'Concessão' },
   { value: 'Nulidade', label: 'Nulidade' },
+  { value: 'Negativado', label: 'Negativado' },
+  { value: 'Renovação', label: 'Renovação' },
   { value: 'Aguardando exame de mérito', label: 'Aguardando exame de mérito' },
+  { value: 'Acompanhamento de Processo', label: 'Acompanhamento de Processo' },
 ];
 
 const ModalStatus: React.FC<ModalStatusProps> = ({ isOpen, onClose, onSave }) => {
@@ -44,7 +47,7 @@ const ModalStatus: React.FC<ModalStatusProps> = ({ isOpen, onClose, onSave }) =>
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 select-none">
-      <div className="bg-white p-6 rounded shadow-lg w-80">
+      <div className="bg-white p-6 rounded shadow-lg w-96">
         <h2 className="text-lg font-semibold mb-4">Alterar Status</h2>
         <Combobox
           value={selectedStatus}

@@ -30,11 +30,52 @@ interface EmpresaData {
   nr_telefone_2: string;
   ds_email: string;
   nr_repeticao: number;
-  ie_situacao: string;
+  //ie_situacao: string;
   dt_processo: string;
   nr_valor: number;
   total_valor: number; // Soma do valor
+  nr_cpf: string;
 }
+
+// Função para formatar CNPJ
+const formatCNPJ = (cnpj: string | null | undefined) => {
+  if (!cnpj) return ''; // Retorna uma string vazia se o CNPJ for nulo ou indefinido
+  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+};
+
+// Função para formatar telefone
+const formatTelefone = (telefone: string | null | undefined) => {
+  if (!telefone) return ''; // Retorna uma string vazia se o telefone for nulo ou indefinido
+  return telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+};
+
+// Função para formatar valor
+const formatValor = (valor: number | string | null | undefined) => {
+  if (valor === null || valor === undefined || valor === '') return '';
+
+  // Converte valor para número, se necessário
+  const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
+  
+  // Verifica se a conversão resultou em um número válido
+  if (isNaN(numero)) return '';
+
+  // Converte o número para string e separa a parte inteira e decimal
+  const valorString = numero.toFixed(2); // Garante que há duas casas decimais
+  const [inteiro, decimal] = valorString.split('.');
+
+  // Adiciona a formatação de milhar à parte inteira
+  const parteInteiraFormatada = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  // Concatena a parte inteira e decimal com a vírgula e adiciona o símbolo
+  return `R$ ${parteInteiraFormatada},${decimal}`;
+};
+
+// Função para formatar CPF
+const formatCPF = (cpf: string | null | undefined) => {
+  if (!cpf) return ''; // Retorna uma string vazia se o CPF for nulo ou indefinido
+  return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+};
+
 
 const columns: ColumnDef<EmpresaData, any>[] = [
   {
@@ -48,17 +89,22 @@ const columns: ColumnDef<EmpresaData, any>[] = [
     header: 'Nome',
   },
   {
-    accessorFn: row => row.cd_cnpj,
+    accessorFn: row => formatCNPJ(row.cd_cnpj), // Aplicando a máscara de CNPJ
     id: 'cd_cnpj',
     header: 'CNPJ',
   },
   {
-    accessorFn: row => row.nr_telefone_1,
+    accessorFn: row => formatCPF(row.nr_cpf), // Aplicando a máscara de CNPJ
+    id: 'nr_cpf',
+    header: 'CPF',
+  },
+  {
+    accessorFn: row => formatTelefone(row.nr_telefone_1), // Aplicando a máscara de telefone
     id: 'nr_telefone_1',
     header: 'Telefone 1',
   },
   {
-    accessorFn: row => row.nr_telefone_2,
+    accessorFn: row => formatTelefone(row.nr_telefone_2), // Aplicando a máscara de telefone
     id: 'nr_telefone_2',
     header: 'Telefone 2',
   },
@@ -67,18 +113,18 @@ const columns: ColumnDef<EmpresaData, any>[] = [
     id: 'ds_email',
     header: 'Email',
   },
-  {
+  /*{
     accessorFn: row => row.ie_situacao,
     id: 'ie_situacao',
     header: 'Situação',
-  },
+  },*/
   {
     accessorFn: row => new Date(row.dt_processo).toLocaleDateString(),
     id: 'dt_processo',
     header: 'Data de Processo',
   },
   {
-    accessorFn: row => row.nr_valor,
+    accessorFn: row => formatValor(row.nr_valor), // Aplicando a máscara de valor
     id: 'nr_valor',
     header: 'Valor',
   },
@@ -155,7 +201,7 @@ const Relatorio: React.FC = () => {
       theme: 'striped',
       didDrawPage: () => {
         // Add total to PDF
-        doc.text(`Total de Processos: ${total.toFixed(2)}`, 14, doc.internal.pageSize.height - 10);
+        doc.text(`Total de Processos: ${formatValor(total.toFixed(2))}`, 14, doc.internal.pageSize.height - 10);
       },
     });
 
@@ -214,7 +260,7 @@ const Relatorio: React.FC = () => {
       {/* Total section */}
       <div className="mb-4">
         <label className="font-semibold">Total de Processos:</label>
-        <span>{total.toFixed(2)}</span>
+        <span> {formatValor(total.toFixed(2))}</span>
       </div>
 
       {/* Table section */}

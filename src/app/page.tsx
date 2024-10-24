@@ -158,7 +158,7 @@ const Home: React.FC = () => {
               direction='up'
               options={itemsPerPageOptions}
               placeholder="Itens por página"
-              className="w-full md:w-[190px]"
+              className="w-full md:w-[200px]"
             />
           </div>
           <button

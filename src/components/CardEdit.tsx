@@ -136,6 +136,51 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
     });
   };
 
+  const handleDelete = async (id: number) => {
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir este registro?');
+    
+    if (confirmDelete) {
+      try {
+        setIsLoading(true);
+  
+        // Envia requisição DELETE para a API
+        await axiosInstance.delete(`/delete/${id}`);
+  
+        // Atualiza a lista de cards removendo o item deletado
+        setCards(prevCards => prevCards.filter(card => card.id !== id));
+      } catch (error) {
+        console.error('Erro ao deletar empresa:', error);
+        alert('Erro ao deletar o registro.');
+      } finally {
+        axiosInstance.get('/list')
+        .then(response => {
+          const formattedCards = response.data.map((card: any) => ({
+            id: card.id,
+            nome: card.ds_nome,
+            cnpj: card.cd_cnpj ? formatCnpj(card.cd_cnpj) : undefined,
+            cpf: card.nr_cpf ? formatCpf(card.nr_cpf) : undefined,
+            email: card.ds_email,
+            telefone1: formatPhoneNumber(card.nr_telefone_1),
+            telefone2: card.nr_telefone_2,
+            situacao: card.ie_situacao,
+            repeticao: card.nr_repeticao,
+            nr_valor: card.nr_valor ? parseCurrency(card.nr_valor) : undefined,
+            dt_processo: card.dt_processo ? new Date(card.dt_processo) : undefined,
+            nr_processo: card.nr_processo,
+          }));
+          
+          setCards(formattedCards);
+          
+        })
+        .catch(error => {
+          console.error('Erro ao buscar dados:', error);
+        });
+      setIsLoading(false);
+      }
+    }
+  };
+  
+
   const handleSave = async () => {
     setIsLoading(true);
   
@@ -380,6 +425,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
               </div>
               
               <div className="flex justify-end space-x-2">
+                <button onClick={() => handleDelete(formData.id)} className="bg-red-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Deletar</button>
                 <button onClick={handleCancel} className="bg-gray-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Cancelar</button>
                 <button onClick={handleSave} className="bg-blue-500 text-white rounded-md px-4 py-2" disabled={isLoading}>Salvar</button>
               </div>
@@ -418,6 +464,7 @@ const CardEdit: React.FC<CardEditProps> = ({ searchTerm }) => {
                 <p className="flex-grow">{card.dt_processo ? card.dt_processo.toISOString().split('T')[0] : ''}</p>
               </div>
               <button onClick={() => handleEdit(card)} className="bg-blue-500 text-white rounded-md px-4 py-2 self-end">Editar</button>
+              
             </>
           )}
         </div>
